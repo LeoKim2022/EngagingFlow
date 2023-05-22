@@ -1,0 +1,85 @@
+
+.engaging-flow {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+}
+
+.flow-node {
+    position: absolute;
+    width: fit-content;
+    background-color: white;
+    user-select: none;
+}
+
+.node-content {
+    border: 1px solid gray;
+}
+
+.item-panel {
+    position: absolute;
+    border: 1px solid gray;
+}
+
+.engaging-flow>.flow-container {
+    position: absolute;
+    overflow: visible;
+    width: 100px;
+    height: 100px;
+}
+
+.node-pointer {
+    position: absolute;
+    top: 50%;
+}
+
+.node-inputs {
+    left: 2px;
+    transform: translate(-50%, -50%);
+}
+
+.node-outputs {
+    right: -2px;
+    transform: translate(50%, -50%);
+}
+
+.node-pointer svg {
+    stroke: gray;
+    fill: white;
+}
+
+.flow-container:not(.dragging) .node-output:hover svg,
+.flow-container:not(.dragging) .node-input:hover svg {
+    stroke: red;
+    cursor: pointer;
+}
+
+.node-connect {
+    position: absolute;
+}
+
+.panel-point {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    line-height: 0px;
+}
+
+.panel-point.right {
+}
+
+.panel-point.top {
+}
+
+.panel-point.bottom {
+}
+
+.panel-point>svg {
+    position: relative;
+    background-color: indianred;
+    width: 100%;
+    height: 100%;  
+    top: 0px;  
+    left: 0px;
+}
+
