@@ -5,7 +5,7 @@ import './engaging_flow.css';
 import Node from './node'
 import Connection from './connection'
 
-import connectPath from '../function/connect_path'
+import {connectPath} from '../function/connect_path'
 
 const MOUSE_BUTTONS_LEFT  = 1;
 const MOUSE_BUTTONS_WHEEL = 4;
@@ -19,12 +19,14 @@ export default function EngagingFlow(props) {
     }
 
     const itemPointerSize = {
-        width: 12,
-        height: 12,
+        width: 9,
+        height: 7,
     }
 
     const nodeWidth  = 100
     const nodeHeight = nodeWidth * 1.6
+
+    const connectSvgMargin = 5
 
     const [dragTargetNode, setDragTargetNode] = useState(null);
     const [nodeDragging, setNodeDragging] = useState(false);
@@ -53,7 +55,7 @@ export default function EngagingFlow(props) {
                     id: "b3",
                     top: 120,
                     left: 30,
-                    width: 50,
+                    width: 20,
                     height: 30,
                     action: {
                         id: "eee",
@@ -279,8 +281,10 @@ export default function EngagingFlow(props) {
     function handleMouseDownOnNode(event) {
         setNodeDragging(true);
 
-        let targetNode = event.target;
-        if(Array.from(targetNode.classList).includes('node-content')) targetNode = event.target.parentElement;
+        let targetNode = getFlowNodeDiv(event.target);
+        if(!targetNode) {
+            setNodeDragging(false);
+        }
 
         setDragTargetNode(targetNode);
         const rect = event.target.getBoundingClientRect();
@@ -320,7 +324,6 @@ export default function EngagingFlow(props) {
     };
 
     // function updatePointerLocation() {
-
     // }
 
     const nodeHtml = childData.map((node, index) => {
@@ -349,7 +352,7 @@ export default function EngagingFlow(props) {
                     const targetNode = childData.find((element) => { return(element.id === nodeItem.action.id) });
                     if(targetNode) {
 
-                        const pathPointer = connectPath({
+                        const pathInfo = connectPath({
                             targetNode: targetNode,
                             fromNode: node,
                             fromItem: nodeItem,
@@ -357,15 +360,19 @@ export default function EngagingFlow(props) {
                             nodePointerSize: nodePointerSize,
                             itemPointerSize: itemPointerSize,
                         });
-                    
-                        connectionHtml.push(
-                            <Connection 
-                                key={index} 
-                                fromNode={node} 
-                                fromItem={nodeItem} 
-                                pathPointer={pathPointer} 
-                            />
-                        )
+
+                        if(pathInfo) {
+                            connectionHtml.push(
+                                <Connection 
+                                    key={index} 
+                                    fromNode={node} 
+                                    fromItem={nodeItem} 
+                                    pathInfo={pathInfo} 
+                                    connectSvgMargin={connectSvgMargin}
+                                />
+                            )
+                        }
+
                     }
                 }
             });
@@ -399,4 +406,22 @@ export default function EngagingFlow(props) {
         </div>
     )
 }
-    
+ 
+
+
+/**
+ * 
+ */
+function getFlowNodeDiv(element) {
+    let parent = element.parentNode;
+  
+    while (parent) {
+        if (parent.classList.contains('flow-node')) {
+            return parent;
+        }
+        parent = parent.parentNode;
+    }
+  
+    return null;
+  }
+  

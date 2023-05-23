@@ -13,7 +13,7 @@
 }
 
 .node-content {
-    border: 1px solid gray;
+    border: 2px solid gray;
 }
 
 .item-panel {
@@ -48,6 +48,27 @@
     fill: white;
 }
 
+.node-inside-svg {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+.node-inside-svg>svg {
+    width: 100%;
+    height: 100%;
+}
+
+.node-inside-svg>svg>path {
+    fill: none;
+}
+
+.node-inside-svg>svg>polygon {
+    fill: gray;
+}
+
 .flow-container:not(.dragging) .node-output:hover svg,
 .flow-container:not(.dragging) .node-input:hover svg {
     stroke: red;
@@ -57,29 +78,3 @@
 .node-connect {
     position: absolute;
 }
-
-.panel-point {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    line-height: 0px;
-}
-
-.panel-point.right {
-}
-
-.panel-point.top {
-}
-
-.panel-point.bottom {
-}
-
-.panel-point>svg {
-    position: relative;
-    background-color: indianred;
-    width: 100%;
-    height: 100%;  
-    top: 0px;  
-    left: 0px;
-}
-
