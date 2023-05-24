@@ -1,32 +1,31 @@
+import {isEmptyArray} from '../function/common'
+
 export default function Connection(props) {
 
-    let svgMargin = props.connectSvgMargin;
+    if(!props.pathInfo || isEmptyArray(props.pathInfo.pathPoints)) return;
+
+    const fromPath = props.pathInfo.pathPoints.findLast((pathItem) => {
+        return(pathItem.isInside === true);
+    });
+
+    const pathInfo = props.pathInfo.pathPoints.filter((pathItem) => {
+        return(pathItem.isInside !== true);
+    });
+
+    if(!fromPath || isEmptyArray(pathInfo)) return;
+    
+    let pathVal = `M${fromPath.x} ${fromPath.y}`;
+
+    pathInfo.forEach((pathItem) => {
+        pathVal += ` L${pathItem.x} ${pathItem.y}`;
+    })
 
     return (
-        <svg 
-            className={`node-connect`}
-            data-from-node={props.fromNode.id}
-            data-from-item={props.fromItem.id}
-
-            style={{
-                top: props.pathInfo.svgRect.top - svgMargin,
-                left: props.pathInfo.svgRect.left - svgMargin,
-                width: props.pathInfo.svgRect.width + (svgMargin * 2),
-                height: props.pathInfo.svgRect.height + (svgMargin * 2),
-                // backgroundColor: "indigo"
-            }}
-        >
-            <path 
-                // d="
-                //     M10 10
-                //     L80 10
-                //     L80 120
-                //     L130 120
-                // "
-                stroke="#B0E0E6"
-                strokeWidth="3px"
-                fill="none"
-            />
-        </svg>
+        <path 
+            d={pathVal}
+            stroke="red"
+            strokeWidth="1"
+            fill="none"
+        />
     )
 }

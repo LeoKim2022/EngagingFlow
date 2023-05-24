@@ -5,7 +5,10 @@ import './engaging_flow.css';
 import Node from './node'
 import Connection from './connection'
 
+import * as DEFINE from './define'
+import {isEmptyArray} from '../function/common'
 import {connectPath} from '../function/connect_path'
+import {nodeData} from '../common/node_data'
 
 const MOUSE_BUTTONS_LEFT  = 1;
 const MOUSE_BUTTONS_WHEEL = 4;
@@ -23,9 +26,6 @@ export default function EngagingFlow(props) {
         height: 7,
     }
 
-    const nodeWidth  = 100
-    const nodeHeight = nodeWidth * 1.6
-
     const connectSvgMargin = 5
 
     const [dragTargetNode, setDragTargetNode] = useState(null);
@@ -36,212 +36,16 @@ export default function EngagingFlow(props) {
     const [targetGap, setTargetGap] = useState({top: 0, left: 0});
     const [containerPosition, setContainerPosition] = useState({ top: 120, left: 120});
 
-    const [childData, setChildData] = useState([
-        {
-            id: 'aaa',
-            top: 80,
-            left: 50,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    id: "a1",
-                    top: 10,
-                    left: 20,
-                    width: 50,
-                    height: 30,
-                },
-                {
-                    id: "b3",
-                    top: 120,
-                    left: 30,
-                    width: 20,
-                    height: 30,
-                    action: {
-                        id: "eee",
-                    }
-                },
-            ]
-        },
-        {
-            id: 'bbb',
-            top: 50,
-            left: 250,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-            ]
-        },
-        {
-            id: 'ccc',
-            top: 50,
-            left: 450,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    id: "c1",
-                    top: 40,
-                    left: 40,
-                    width: 50,
-                    height: 50,
-                },
-            ]
-        },
-        {
-            id: 'ddd',
-            top: 300,
-            left: 50,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    id: "d1",
-                    top: 10,
-                    left: 20,
-                    width: 50,
-                    height: 50,
-                },
-                {
-                    id: "d2",
-                    top: 80,
-                    left: 30,
-                    width: 50,
-                    height: 50,
-                },
-            ]
-        },
-        {
-            id: 'eee',
-            top: 350,
-            left: 350,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    id: "e1",
-                    top: 10,
-                    left: 10,
-                    width: 20,
-                    height: 20,
-                },
-                {
-                    top: 10,
-                    left: 40,
-                    width: 15,
-                    height: 15,
-                },
-                {
-                    top: 10,
-                    left: 65,
-                    width: 20,
-                    height: 15,
-                },
-                {
-                    top: 40,
-                    left: 10,
-                    width: 25,
-                    height: 25,
-                },
-                {
-                    top: 40,
-                    left: 70,
-                    width: 20,
-                    height: 20,
-                },
-                {
-                    top: 110,
-                    left: 10,
-                    width: 15,
-                    height: 15,
-                },
-                {
-                    top: 110,
-                    left: 40,
-                    width: 20,
-                    height: 20,
-                },
-                {
-                    top: 110,
-                    left: 70,
-                    width: 13,
-                    height: 13,
-                },
-            ]
-        },
-        {
-            id: 'fff',
-            top: 350,
-            left: 550,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    top: 40,
-                    left: 40,
-                    width: 50,
-                    height: 50,
-                },
-            ]
-        },
-        {
-            id: 'ggg',
-            top: 500,
-            left: 50,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    top: 10,
-                    left: 20,
-                    width: 50,
-                    height: 50,
-                },
-                {
-                    top: 80,
-                    left: 30,
-                    width: 50,
-                    height: 50,
-                },
-            ]
-        },
-        {
-            id: 'hhh',
-            top: 550,
-            left: 350,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    top: 10,
-                    left: 10,
-                    width: 50,
-                    height: 50,
-                },
-                {
-                    top: 100,
-                    left: 30,
-                    width: 50,
-                    height: 50,
-                },
-            ]
-        },
-        {
-            id: 'iii',
-            top: 600,
-            left: 550,
-            width: nodeWidth,
-            height: nodeHeight,
-            items: [
-                {
-                    top: 40,
-                    left: 40,
-                    width: 50,
-                    height: 50,
-                },
-            ]
-        },
-    ]);
+    const allNodeState = [];
+    nodeData.forEach((nodeItem) => {
+        const [nodeData, setNodeData] = useState(nodeItem);
+
+        allNodeState.push({
+            id: nodeItem.id,
+            state: nodeData,
+            stateFunc: setNodeData,
+        })
+    });
 
     function finishDrag() {
         setFlowDragging(false);
@@ -252,7 +56,6 @@ export default function EngagingFlow(props) {
     function handleFlowMouseDown(event) {
         switch(event.buttons) {
             case MOUSE_BUTTONS_LEFT: {
-                console.log("🚀 ~ MOUSE_BUTTONS_LEFT:", MOUSE_BUTTONS_LEFT);
                 break;
             }
         
@@ -268,7 +71,6 @@ export default function EngagingFlow(props) {
             }
         
             case MOUSE_BUTTONS_RIGHT: {
-                console.log("🚀 ~ MOUSE_BUTTONS_RIGHT:", MOUSE_BUTTONS_RIGHT);
                 break;
             }
         
@@ -305,14 +107,17 @@ export default function EngagingFlow(props) {
 
     function handleMouseMove(event) {
         if (nodeDragging && dragTargetNode) {
-            const newChildData = [...childData];
-            const findItem = newChildData.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
+            const findItem = allNodeState.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
     
             if(findItem) {
-                findItem.top  = event.clientY - targetGap.top;
-                findItem.left = event.clientX - targetGap.left;
+                const nodeState = JSON.parse(JSON.stringify(findItem.state));
+
+                nodeState.top  = event.clientY - targetGap.top;
+                nodeState.left = event.clientX - targetGap.left;
+
+                // TODO: Node는 background pattern 에 맞춰서 동작해야함.
     
-                setChildData(newChildData);
+                findItem.stateFunc(nodeState);
             }
         } else if(flowDragging) {
             setContainerPosition({
@@ -326,15 +131,15 @@ export default function EngagingFlow(props) {
     // function updatePointerLocation() {
     // }
 
-    const nodeHtml = childData.map((node, index) => {
+    const nodeHtml = allNodeState.map((node, index) => {
         return(
             <Node 
                 key={index} 
-                width={nodeWidth} 
-                height={nodeHeight} 
-                node={node}
-                childData={childData}
-                flowPosition={containerPosition}
+                width={node.state.width} 
+                height={node.state.height} 
+                node={node.state}
+                childData={allNodeState}
+                containerPosition={containerPosition}
                 nodePointerSize={nodePointerSize}
                 itemPointerSize={itemPointerSize}
                 onMouseDown={handleMouseDownOnNode}
@@ -345,18 +150,21 @@ export default function EngagingFlow(props) {
 
     const connectionHtml = [];
     
-    childData.forEach((node, index) => {
-        if(Array.isArray(node.items)  && node.items.length > 0) {
-            node.items.forEach((nodeItem, index) => {
+    allNodeState.forEach((node, index) => {
+        
+        const nodeState = node.state;
+
+        if(!isEmptyArray(nodeState.items)) {
+            nodeState.items.forEach((nodeItem, index) => {
                 if(nodeItem.action !== undefined) {
-                    const targetNode = childData.find((element) => { return(element.id === nodeItem.action.id) });
+                    const targetNode = allNodeState.find((element) => { return(element.id === nodeItem.action.id) });
                     if(targetNode) {
 
                         const pathInfo = connectPath({
-                            targetNode: targetNode,
-                            fromNode: node,
+                            toNode: targetNode.state,
+                            fromNode: nodeState,
                             fromItem: nodeItem,
-                            flowPosition: containerPosition,
+                            containerPosition: containerPosition,
                             nodePointerSize: nodePointerSize,
                             itemPointerSize: itemPointerSize,
                         });
@@ -365,7 +173,7 @@ export default function EngagingFlow(props) {
                             connectionHtml.push(
                                 <Connection 
                                     key={index} 
-                                    fromNode={node} 
+                                    fromNode={nodeState} 
                                     fromItem={nodeItem} 
                                     pathInfo={pathInfo} 
                                     connectSvgMargin={connectSvgMargin}
@@ -400,13 +208,19 @@ export default function EngagingFlow(props) {
                     left: containerPosition.left
                 }} 
             >
-                <div className='node-connects'> {connectionHtml} </div>
+                <svg className='node-connects'>
+                    {connectionHtml}
+                </svg>
+
                 {nodeHtml}
             </div>
         </div>
     )
 }
- 
+
+// TODO: flow background pattern
+// 화면 원점에 pattern을 0,0 으로 맞추지 않음
+// flow 드래그는 부드럽게 동작해야 한다.
 
 
 /**
@@ -423,5 +237,5 @@ function getFlowNodeDiv(element) {
     }
   
     return null;
-  }
+}
   

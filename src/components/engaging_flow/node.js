@@ -2,6 +2,7 @@ import React, { useRef,  } from 'react';
 
 import ItemPanel from './item_panel'
 
+import {isEmptyArray} from '../function/common'
 import {nodePointerPentagon, nodePointerTriangle} from '../function/node_pointer_polygon'
 import {connectPath} from '../function/connect_path'
 
@@ -14,7 +15,7 @@ export default function Node(props) {
     let itemHtml
     let insideSvgHtml = [];
 
-    if(Array.isArray(node.items) && node.items.length > 0) {
+    if(!isEmptyArray(node.items)) {
         itemHtml = node.items.map((item, index) => {
 
             let pathInfo = null;
@@ -22,10 +23,10 @@ export default function Node(props) {
                 const targetNode = childData.find((element) => { return(element.id === item.action.id) });
 
                 pathInfo = connectPath({
-                    targetNode: targetNode,
+                    toNode: targetNode.state,
                     fromNode: node,
                     fromItem: item,
-                    flowPosition: props.containerPosition,
+                    containerPosition: props.containerPosition,
                     nodePointerSize: props.nodePointerSize,
                     itemPointerSize: props.itemPointerSize,
                 });
@@ -38,8 +39,6 @@ export default function Node(props) {
                 <ItemPanel 
                     key={index} 
                     item={item}
-                    // pathInfo={pathInfo}
-                    // itemPointerSize={props.itemPointerSize}
                 />
             );
         })
@@ -82,8 +81,17 @@ export default function Node(props) {
                 {itemHtml}
             </div>
 
+            <div className='node-inside-svg'>
+                <svg>
+                    {insideSvgHtml}
+                </svg>
+            </div>
+
             <div className='node-pointer node-inputs'>
-                <div className='node-input' ref={inputPointerLocation}>
+                <div 
+                    className='node-input' 
+                    ref={inputPointerLocation}
+                >
                     <svg width={props.nodePointerSize.width} height={props.nodePointerSize.height}>
                         <polygon points={svgPolygon} />
                     </svg>
@@ -91,18 +99,20 @@ export default function Node(props) {
             </div>
 
             <div className='node-pointer node-outputs'>
-                <div className='node-output' ref={outputPointerLocation}>
+                <div 
+                    className='node-output' 
+                    ref={outputPointerLocation}
+                    onMouseDown={(event) => {
+                        event.stopPropagation();
+                        // TODO: 아웃풋 포인터에서 마우스 다운이 발생하면 노드를 그리는 화면으로 안내가 되어야 함.
+                    }}
+                >
                     <svg width={props.nodePointerSize.width} height={props.nodePointerSize.height}>
                         <polygon points={svgPolygon} />
                     </svg>
                 </div>
             </div>
 
-            <div className='node-inside-svg'>
-                <svg>
-                    {insideSvgHtml}
-                </svg>
-            </div>
         </div>
     )
 }
@@ -113,7 +123,7 @@ export default function Node(props) {
  * 
  */
 function createInsideSvgItem(pathInfo) {
-    if(!Array.isArray(pathInfo.pathPoints) || pathInfo.pathPoints.length < 1) return([]);
+    if(!pathInfo || isEmptyArray(pathInfo.pathPoints)) return([]);
 
     const fromNode = pathInfo.fromNode;
     const fromPoint = pathInfo.fromPoint;
@@ -158,18 +168,18 @@ function createInsideSvgItem(pathInfo) {
                 pathVal += ` L${point.x + lastPointGap} ${point.y}`
             } else {
                 if(point.y < itemPoint.y) {
-                    pathVal += ` L${point.x} ${point.y - lastPointGap}`
+                    pathVal += ` L${point.x} ${point.y}`
                 } else {
-                    pathVal += ` L${point.x} ${point.y + lastPointGap}`
+                    pathVal += ` L${point.x} ${point.y}`
                 }
-            }            
+            }
         })
-        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="blue" strokeWidth="2"/>);
+        
+        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="red" strokeWidth="1"/>);
     }
 
     const trianglePoints = nodePointerTriangle(pathInfo.edge, itemPoint, itemPointerSize);
     insideSvgItem.push(<polygon key={insideSvgItem.length} points={trianglePoints} />);
 
-    console.log("🚀 %c~~~~~~~~~~~~~~~~~~~~~", 'color: red');
     return(insideSvgItem);
 }

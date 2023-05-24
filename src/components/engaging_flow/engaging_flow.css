@@ -10,6 +10,7 @@
     width: fit-content;
     background-color: white;
     user-select: none;
+    line-height: 0px;
 }
 
 .node-content {
@@ -73,6 +74,16 @@
 .flow-container:not(.dragging) .node-input:hover svg {
     stroke: red;
     cursor: pointer;
+}
+
+.node-connects {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100px;
+    height: 100px;
+    line-height: 0px;
+    overflow: visible;
 }
 
 .node-connect {
