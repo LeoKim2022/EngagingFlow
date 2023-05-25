@@ -2,6 +2,7 @@ import React, { useRef,  } from 'react';
 
 import ItemPanel from './item_panel'
 
+import * as DEFINITION from './definition'
 import {isEmptyArray} from '../function/common'
 import {nodePointerPentagon, nodePointerTriangle} from '../function/node_pointer_polygon'
 import {connectPath} from '../function/connect_path'
@@ -135,6 +136,7 @@ function createInsideSvgItem(pathInfo) {
     pathInfo.pathPoints.forEach((point) => {
         if(point.isInside === true) {
             insidePoints.push({
+                direction: point.direction,
                 x: point.x - fromNode.left,
                 y: point.y - fromNode.top,
             })
@@ -161,21 +163,17 @@ function createInsideSvgItem(pathInfo) {
             let lastPointGap = 0;
             if(index === insidePoints.length - 1) {
                 // 마지막 포인트의 경우는 path 두께와 border만큼 더 그려야 합니다.
-                lastPointGap = 4; // node border : 2, path stroke-width : 2
+                lastPointGap = DEFINITION.NODE_INNER_PATH_GAP;
             }
 
-            if(point.y === itemPoint.y) {
+            if(point.direction === 'right') {
                 pathVal += ` L${point.x + lastPointGap} ${point.y}`
             } else {
-                if(point.y < itemPoint.y) {
-                    pathVal += ` L${point.x} ${point.y}`
-                } else {
-                    pathVal += ` L${point.x} ${point.y}`
-                }
+                pathVal += ` L${point.x} ${point.y}`
             }
         })
         
-        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="red" strokeWidth="1"/>);
+        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="red"/>);
     }
 
     const trianglePoints = nodePointerTriangle(pathInfo.edge, itemPoint, itemPointerSize);

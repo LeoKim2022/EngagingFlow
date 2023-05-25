@@ -1,4 +1,4 @@
-import * as DEFINE from '../engaging_flow/define'
+import * as DEFINITION from '../engaging_flow/definition'
 // import {isEmptyArray} from '../function/common'
 
 const breakPoint = 0.5;
@@ -237,8 +237,8 @@ function findStartEdge(params) {
     }
 
     const toNodePointer = {
-        x: toNode.left - (nodePointerSize.width / 2) + DEFINE.NODE_INPUT_POINTER_GAP_X,
-        y: toNode.top + (toNode.height / 2) + DEFINE.NODE_INPUT_POINTER_GAP_Y,
+        x: toNode.left - (nodePointerSize.width / 2) + DEFINITION.NODE_INPUT_POINTER_GAP_X,
+        y: toNode.top + (toNode.height / 2) + DEFINITION.NODE_INPUT_POINTER_GAP_Y,
     }
 
     if(
@@ -421,9 +421,14 @@ function searchPath(searchPathParam) {
 
         let newPoint = {};
 
-        if(axis === "x") {
+        if(axis === "x") {            
             newPoint.y = wayPoint.y;
             const xDistance = toPoint.x - wayPoint.x;
+            if(xDistance >= 0) {
+                newPoint.direction = "right";
+            } else {
+                newPoint.direction = "left";
+            }
             
             if(wayPoint.x > toPoint.x) {
                 newPoint.x = wayPoint.x + xDistance - nodePointerSize.width;
@@ -439,27 +444,28 @@ function searchPath(searchPathParam) {
                 }
             }
         } else {
-            newPoint.x = wayPoint.x;
+            newPoint.x = wayPoint.x;            
             let yDistance = toPoint.y - wayPoint.y;
-
-            if(wayPoint.x > toPoint.x) {
-                newPoint.y = wayPoint.y + yDistance * breakPoint;
+            if(yDistance >= 0) {
+                newPoint.direction = "bottom";
             } else {
-                if(newPoint.x === fromPoint.x) { // x가 시작포인트와 동일하고
-                    if(edge === 'top' && (fromPoint.y - itemPointerSize.height) < toPoint.y) { // 도착점이 시작점보다 탑에서 멀면
-                        newPoint.y = wayPoint.y - itemPointerSize.height;
-                    } else if(edge === 'bottom' && (fromPoint.y + itemPointerSize.height) > toPoint.y) {
-                        newPoint.y = wayPoint.y + itemPointerSize.height;
-                    } else {
-                        newPoint.y = wayPoint.y + yDistance;
-                    }
+                newPoint.direction = "top";
+            }
+
+            if(newPoint.x === fromPoint.x) { // x가 시작포인트와 동일하고
+                if(edge === 'top' && (fromPoint.y - itemPointerSize.height * 2) < toPoint.y) { // 도착점이 시작점보다 탑에서 멀면
+                    newPoint.y = wayPoint.y - itemPointerSize.height;
+                } else if(edge === 'bottom' && (fromPoint.y + itemPointerSize.height * 2) > toPoint.y) {
+                    newPoint.y = wayPoint.y + itemPointerSize.height;
                 } else {
-                    if(wayPoint.y < toPoint.y) {
-                        newPoint.y = wayPoint.y + yDistance;
+                    if(wayPoint.x > toPoint.x) {
+                        newPoint.y = wayPoint.y + yDistance * breakPoint;
                     } else {
                         newPoint.y = wayPoint.y + yDistance;
                     }
                 }
+            } else {
+                newPoint.y = wayPoint.y + yDistance;
             }
         }
 
@@ -468,20 +474,11 @@ function searchPath(searchPathParam) {
 
         if(insideFrom === true) {
             if(insideNew === true) {
-                pointers.push({
-                    isInside: insideFrom,
-                    x: newPoint.x,
-                    y: newPoint.y,
-                });        
+                pointers.push(Object.assign({isInside: insideFrom}, newPoint));
             } else {
 
+                const pushPointer = Object.assign({isInside: insideFrom}, newPoint);
                 if(axis === "x") {
-
-                    const pushPointer = {
-                        isInside: insideFrom,
-                        y: newPoint.y,
-                    }
-
                     if(wayPoint.x < toPoint.x) {
                         pushPointer.x = fromNode.right;
                         pointers.push(pushPointer);
@@ -492,16 +489,11 @@ function searchPath(searchPathParam) {
                     }
                     
                 } else {
-                    const pushPointer = {
-                        isInside: insideFrom,
-                        x: newPoint.x,
-                    }
-
                     if(wayPoint.y > toPoint.y) {
                         pushPointer.y = fromNode.top;
                         pointers.push(pushPointer);
                     } else {
-                        pushPointer.y = fromNode.bottom + (DEFINE.NODE_INPUT_POINTER_GAP_Y * 2);
+                        pushPointer.y = fromNode.bottom + (DEFINITION.NODE_INPUT_POINTER_GAP_Y * 2);
                         pointers.push(pushPointer);
                     }    
                 }

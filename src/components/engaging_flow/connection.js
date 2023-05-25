@@ -24,7 +24,6 @@ export default function Connection(props) {
         <path 
             d={pathVal}
             stroke="red"
-            strokeWidth="1"
             fill="none"
         />
     )

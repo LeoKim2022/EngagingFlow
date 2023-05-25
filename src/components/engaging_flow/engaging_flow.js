@@ -5,7 +5,7 @@ import './engaging_flow.css';
 import Node from './node'
 import Connection from './connection'
 
-import * as DEFINE from './define'
+import * as DEFINITION from './definition'
 import {isEmptyArray} from '../function/common'
 import {connectPath} from '../function/connect_path'
 import {nodeData} from '../common/node_data'

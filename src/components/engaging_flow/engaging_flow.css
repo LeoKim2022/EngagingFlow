@@ -62,8 +62,10 @@
     height: 100%;
 }
 
+.node-connects path,
 .node-inside-svg>svg>path {
     fill: none;
+    stroke-width: 1.5px;
 }
 
 .node-inside-svg>svg>polygon {
@@ -86,6 +88,3 @@
     overflow: visible;
 }
 
-.node-connect {
-    position: absolute;
-}
