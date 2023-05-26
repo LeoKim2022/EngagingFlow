@@ -5,7 +5,7 @@ const nodeData = [
     {
         id: 'aaa',
         top: 80,
-        left: 50,
+        left: 40,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -30,8 +30,8 @@ const nodeData = [
     },
     {
         id: 'bbb',
-        top: 0,
-        left: 250,
+        top: 40,
+        left: 280,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -39,8 +39,8 @@ const nodeData = [
     },
     {
         id: 'ccc',
-        top: 50,
-        left: 450,
+        top: 80,
+        left: 560,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -55,8 +55,8 @@ const nodeData = [
     },
     {
         id: 'ddd',
-        top: 400,
-        left: 50,
+        top: 40,
+        left: 400,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -79,7 +79,7 @@ const nodeData = [
     {
         id: 'eee',
         top: 400,
-        left: 350,
+        left: 320,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -137,30 +137,38 @@ const nodeData = [
     {
         id: 'fff',
         top: 400,
-        left: 550,
+        left: 520,
         width: nodeWidth,
         height: nodeHeight,
         items: [
             {
+                id: "ff1",
                 top: 40,
                 left: 40,
                 width: 50,
                 height: 50,
+                action: {
+                    id: "hhh",
+                }
             },
         ]
     },
     {
         id: 'ggg',
-        top: 700,
-        left: 50,
+        top: 720,
+        left: 40,
         width: nodeWidth,
         height: nodeHeight,
         items: [
             {
+                id: "g1",
                 top: 10,
                 left: 20,
                 width: 50,
                 height: 50,
+                action: {
+                    id: "hhh",
+                }
             },
             {
                 top: 80,
@@ -172,8 +180,8 @@ const nodeData = [
     },
     {
         id: 'hhh',
-        top: 700,
-        left: 350,
+        top: 760,
+        left: 360,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -193,8 +201,8 @@ const nodeData = [
     },
     {
         id: 'iii',
-        top: 700,
-        left: 550,
+        top: 720,
+        left: 560,
         width: nodeWidth,
         height: nodeHeight,
         items: [
