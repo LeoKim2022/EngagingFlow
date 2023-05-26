@@ -4,7 +4,7 @@ const nodeHeight = nodeWidth * 1.6
 const nodeData = [
     {
         id: 'aaa',
-        top: 80,
+        top: 40,
         left: 40,
         width: nodeWidth,
         height: nodeHeight,
@@ -31,7 +31,7 @@ const nodeData = [
     {
         id: 'bbb',
         top: 40,
-        left: 280,
+        left: 320,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -39,8 +39,8 @@ const nodeData = [
     },
     {
         id: 'ccc',
-        top: 80,
-        left: 560,
+        top: 40,
+        left: 920,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -55,8 +55,8 @@ const nodeData = [
     },
     {
         id: 'ddd',
-        top: 40,
-        left: 400,
+        top: 360,
+        left: 920,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -79,7 +79,7 @@ const nodeData = [
     {
         id: 'eee',
         top: 400,
-        left: 320,
+        left: 120,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -103,10 +103,14 @@ const nodeData = [
                 height: 15,
             },
             {
+                id: "e4",
                 top: 40,
                 left: 10,
                 width: 25,
                 height: 25,
+                action: {
+                    id: "ccc",
+                }
             },
             {
                 top: 40,
@@ -137,7 +141,7 @@ const nodeData = [
     {
         id: 'fff',
         top: 400,
-        left: 520,
+        left: 480,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -180,8 +184,8 @@ const nodeData = [
     },
     {
         id: 'hhh',
-        top: 760,
-        left: 360,
+        top: 720,
+        left: 480,
         width: nodeWidth,
         height: nodeHeight,
         items: [
@@ -202,7 +206,7 @@ const nodeData = [
     {
         id: 'iii',
         top: 720,
-        left: 560,
+        left: 720,
         width: nodeWidth,
         height: nodeHeight,
         items: [

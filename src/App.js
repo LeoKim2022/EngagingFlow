@@ -28,22 +28,41 @@ function App() {
 
     const [flowSize, setFlowSize] = useState({ width: 0, height: 0 });
 
+    const appRef = useRef(null);
     const flowBoxRef = useRef(null);
 
     useEffect(() => {
-        if (flowBoxRef.current) {
+        if(flowBoxRef.current) {
             setFlowSize({
                 width : flowBoxRef.current.offsetWidth,
                 height: flowBoxRef.current.offsetHeight,
             });
         }
-    }, []);    
+
+        if(appRef.current) {
+            appRef.current.addEventListener('wheel', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+            }, { passive: false });
+        }
+    }, []);
 
     return (
         <div 
+            ref={appRef} 
             className="App"
         >
-            <div ref={flowBoxRef} className='engaging-flow-box' style={{width: '1400px', height: '1000px', position: 'absolute', top: '100px', left: '100px'}}>
+            <div 
+                ref={flowBoxRef} 
+                className='engaging-flow-box' 
+                style={{
+                    width: '1600px', 
+                    height: '1200px', 
+                    position: 'absolute', 
+                    top: '50px', 
+                    left: '50px'
+                }}
+            >
                 <EngagingFlow boxWidth={flowSize.width} boxHeight={flowSize.height}/>
             </div>
         </div>

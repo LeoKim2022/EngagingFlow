@@ -1,15 +1,15 @@
 /* eslint-disable */
 import React, { useState, useRef, useEffect } from 'react';
 
-import './engaging_flow.css';
-import Node from './node'
-import Connection from './connection'
-
 import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
 import {connectPath} from '../function/connect_path'
 import {nodeData} from '../common/node_data'
 
+import './engaging_flow.css';
+import Node from './node'
+import Connection from './connection'
+import FlowScrollBar from './flow_scrollbar'
 
 
 /**
@@ -34,7 +34,7 @@ function getFlowNodeDiv(element) {
  * 
  */
 function getGridPosition(editorScale, containerPosition, parentSizeWithGap) {
-    const editorScaleOrigin = editorScale / 10;
+    const editorScaleOrigin = editorScale / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
     // FLOW_GRID_SIZE 단위에서 flow container가 이동한 만큼 gird도 움직여야 하며, 그 거리는 scale 배율에 비례합니다.
     let gridTop = (DEFINITION.FLOW_GRID_SIZE - (containerPosition.top % DEFINITION.FLOW_GRID_SIZE)) * editorScaleOrigin * -1;
@@ -68,11 +68,13 @@ export default function EngagingFlow(props) {
     const [dragTargetNode, setDragTargetNode] = useState(null);
     const [flowDragMode, setFlowDragMode] = useState(DEFINITION.FlowActionMode.none);
 
-    const [targetGap, setTargetGap] = useState({top: 0, left: 0});
-    const [editorScale, setEditorScale] = useState(10);
+    const [targetDragInfo, setTargetDragInfo] = useState({top: 0, left: 0});
+    const [editorScaleLev, setEditorScaleLev] = useState(13);
 
     const [containerPosition, setContainerPosition] = useState({ top: 0, left: 0});
     const [gridPosition, setGridPosition] = useState({ top: 0, left: 0});
+
+    const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
     const allNodeState = [];
     nodeData.forEach((nodeItem) => {
@@ -96,6 +98,7 @@ export default function EngagingFlow(props) {
     function handleFlowMouseDown(event) {
         switch(event.buttons) {
             case DEFINITION.MouseButtons.left: {
+                if(spaceKeyHold) initFlowDragMode(event);
                 break;
             }
         
@@ -104,13 +107,7 @@ export default function EngagingFlow(props) {
             }
         
             case DEFINITION.MouseButtons.wheel: {
-                setFlowDragMode(DEFINITION.FlowActionMode.flow);
-
-                setTargetGap({
-                    left: event.clientX - containerPosition.left,
-                    top: event.clientY - containerPosition.top,
-                });
-    
+                initFlowDragMode(event);
                 break;
             }
         
@@ -120,44 +117,130 @@ export default function EngagingFlow(props) {
         }
     };
 
+
+
+    /**
+     * 
+     * @param event 
+     */
+    function handleKeyDown(event) {
+        switch(event.keyCode) {
+            case DEFINITION.KeyCode.space: {
+                setSpaceKeyHold(true);
+                break;
+            }
+        }
+    }
+
+
+    
+    /**
+     * 
+     * @param event 
+     */    
+    function handleKeyUp(event) {
+        switch(event.keyCode) {
+            case DEFINITION.KeyCode.space: {
+                setSpaceKeyHold(false);
+                break;
+            }
+        }
+    }
+
+
+    
+    /**
+     * 
+     * @param event 
+     */    
     function handleMouseDownOnNode(event) {
+        switch(event.buttons) {
+            case DEFINITION.MouseButtons.left: {
+                if(spaceKeyHold) {
+                    initFlowDragMode(event);
+                } else {
+                    let targetNode = getFlowNodeDiv(event.target);
+                    if(!targetNode) {
+                        setFlowDragMode(DEFINITION.FlowActionMode.none);
+                    } else {
+                        setFlowDragMode(DEFINITION.FlowActionMode.node);
+                    }
+            
+                    setDragTargetNode(targetNode);
+                    const findItem = allNodeState.find((element) => { return(element.id === targetNode.getAttribute('id')) });
+                    if(!findItem) {
+                        setFlowDragMode(DEFINITION.FlowActionMode.none);
+                    }
+            
+                    setTargetDragInfo({
+                        clientX: event.clientX,
+                        clientY: event.clientY,
+                        targetTop : findItem.state.top,
+                        targetLeft: findItem.state.left,
+                    });                    
+                }
+                break;
+            }
         
-        let targetNode = getFlowNodeDiv(event.target);
-        if(!targetNode) {
-            setFlowDragMode(DEFINITION.FlowActionMode.none);
-        } else {
-            setFlowDragMode(DEFINITION.FlowActionMode.node);
+            case DEFINITION.MouseButtons.right: {
+                console.log("🚀 ~ DEFINITION.MouseButtons.right");
+                break;
+            }
+        
+            case DEFINITION.MouseButtons.wheel: {
+                console.log("🚀 ~ DEFINITION.MouseButtons.wheel");
+                initFlowDragMode(event);
+                break;
+            }
+        
+            default: {
+                break;
+            }
         }
-
-        setDragTargetNode(targetNode);
-        const findItem = allNodeState.find((element) => { return(element.id === targetNode.getAttribute('id')) });
-        if(!findItem) {
-            setFlowDragMode(DEFINITION.FlowActionMode.none);
-        }
-
-        setTargetGap({
-            left: event.clientX - findItem.state.left,
-            top: event.clientY - findItem.state.top,
-        });
     };
 
+
+    
+    /**
+     * 
+     */    
+    function handleMouseEnter() {
+        document.getElementById('engaging_editor').focus();
+    };
+
+    
+    /**
+     * 
+     */    
     function handleMouseUp() {
         finishDrag();
     };
 
+
+    
+    /**
+     * 
+     */    
     function handleMouseLeave() {
         finishDrag();
     };
 
+
+    
+    /**
+     * 
+     * @param event 
+     */    
     function handleMouseMove(event) {
         if (flowDragMode === DEFINITION.FlowActionMode.node && dragTargetNode) {
             const findItem = allNodeState.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
     
             if(findItem) {
-                const nodeState = JSON.parse(JSON.stringify(findItem.state));
+                const nodeState   = JSON.parse(JSON.stringify(findItem.state));
+                const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
-                let newTop  = event.clientY - targetGap.top;
-                let newLeft = event.clientX - targetGap.left;
+                let newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
+                let newLeft = (event.clientX - targetDragInfo.clientX) / scaleOrigin + targetDragInfo.targetLeft;
 
                 newTop = Math.round(newTop / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
                 newLeft = Math.round(newLeft / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
@@ -168,13 +251,24 @@ export default function EngagingFlow(props) {
                 findItem.stateFunc(nodeState);
             }
         } else if(flowDragMode === DEFINITION.FlowActionMode.flow) {
+            const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+
+            const newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
+            const newLeft = (event.clientX - targetDragInfo.clientX) / scaleOrigin + targetDragInfo.targetLeft;
+
             setContainerPosition({
-                top : event.clientY - targetGap.top,
-                left: event.clientX - targetGap.left,
+                top : newTop,
+                left: newLeft,
             });
         }
     };
 
+
+    
+    /**
+     * 
+     * @param event 
+     */    
     function handleWheel(event) {
         
         if(event.ctrlKey) {
@@ -188,18 +282,44 @@ export default function EngagingFlow(props) {
                 scaleVal = 1;
             }
 
-            const newScale = editorScale + DEFINITION.FLOW_SCALE_STEP * scaleVal;
-            if(DEFINITION.FLOW_SCALE_MIN <= newScale && newScale <= DEFINITION.FLOW_SCALE_MAX) {
-                setEditorScale(newScale);
+            const newScaleLev = editorScaleLev + DEFINITION.FLOW_SCALE_STEP * scaleVal;
+
+            if(DEFINITION.FLOW_SCALE_MIN <= newScaleLev && newScaleLev <= DEFINITION.FLOW_SCALE_MAX) {
+
+                const prevScaleLev = editorScaleLev; 
+                setEditorScaleLev(newScaleLev);
+
+                const prevScaleOrigin = prevScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+                const newScaleOrigin  = newScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+
+                const editorPosition = document.getElementById('engaging_editor').getBoundingClientRect();
+                
+                const locFromEditor = {
+                    x: event.clientX - editorPosition.left,
+                    y: event.clientY - editorPosition.top,
+                }
+
+                const xMovement = ((locFromEditor.x * (1 / prevScaleOrigin) * newScaleOrigin - locFromEditor.x) * -1) / newScaleOrigin;
+                const yMovement = ((locFromEditor.y * (1 / prevScaleOrigin) * newScaleOrigin - locFromEditor.y) * -1) / newScaleOrigin;
+
+                // 마우스 포인터 위치에서 줌이 되어야 한다.
+                setContainerPosition({
+                    top: containerPosition.top + yMovement,
+                    left: containerPosition.left + xMovement,
+                })
             }
         } else {
+            let scaleVal;
             if(event.deltaY > 0) {
-                console.log("🚀 ~ wheel down:", );
+                scaleVal = -1;
             } else if(event.deltaY < 0) {
-                console.log("🚀 ~ wheel up:", );
-            } else {
-                console.log("🚀 ~ wheel same:", );
+                scaleVal = 1;
             }
+
+            setContainerPosition({
+                top: containerPosition.top + DEFINITION.FLOW_GRID_SIZE * scaleVal,
+                left: containerPosition.left,
+            })
         }
     };
 
@@ -207,27 +327,68 @@ export default function EngagingFlow(props) {
     /**********************************************************************/
     // Function
     /**********************************************************************/
+
+    /**
+     * 
+     */
     function finishDrag() {
         setFlowDragMode(DEFINITION.FlowActionMode.none);
         setDragTargetNode(null);
     }
 
 
-    /**********************************************************************/
-    // set useEffect
-    /**********************************************************************/
-    useEffect(() => {
 
-        const element = document.getElementById('engaging_editor');
-        element.addEventListener('wheel', handleWheel, { passive: false });
+    /**
+     * 
+     * @param mouseEvent 
+     */
+    function initFlowDragMode(mouseEvent) {
+        setFlowDragMode(DEFINITION.FlowActionMode.flow);
 
-        const gridPosition = getGridPosition(editorScale, containerPosition, {
+        setTargetDragInfo({
+            clientX: mouseEvent.clientX,
+            clientY: mouseEvent.clientY,
+            targetTop : containerPosition.top,
+            targetLeft: containerPosition.left,
+        });
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
+    function updateGridPosition() {
+        const gridPosition = getGridPosition(editorScaleLev, containerPosition, {
             width: parentWidthWithGap,
             height: parentHeightWithGap
         });
-        setGridPosition(gridPosition);
 
-    }, [editorScale, containerPosition]);
+        setGridPosition(gridPosition);
+    }
+
+
+    /**********************************************************************/
+    // set useEffect
+    /**********************************************************************/ 
+    const engagingEditorRef = useRef(null);
+    useEffect(() => {
+        const refCurrent = engagingEditorRef.current;
+
+        if(refCurrent) {
+            refCurrent.addEventListener('wheel', handleWheel, { passive: false });
+        }
+
+        updateGridPosition();
+
+        return(() => {
+            if(refCurrent) {
+                refCurrent.removeEventListener('wheel', handleWheel);
+            } 
+        });
+    }, [editorScaleLev, containerPosition]);
+
 
     /**********************************************************************/
     // make html parts
@@ -287,23 +448,23 @@ export default function EngagingFlow(props) {
         }
     })
 
-
-
-    // const gridPosition = getGridPosition(editorScale, containerPosition, {
-    //     width : parentWidthWithGap,
-    //     height: parentHeightWithGap,
-    // });
-
-
     return(
         <div 
-            className='engaging-editor' 
             id='engaging_editor'
+            className='engaging-editor' 
+
+            ref={engagingEditorRef}
 
             onMouseDown={handleFlowMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+
+            tabIndex={0}
         >
             <div 
                 className='engaging-grid' 
@@ -312,23 +473,18 @@ export default function EngagingFlow(props) {
                     left:`${gridPosition.left}px`,
                     width: `${parentWidthWithGap * 3}px`,
                     height: `${parentHeightWithGap * 3}px`,
-                    transform: `scale(${editorScale / 10})`,
+                    transform: `scale(${editorScaleLev / 10})`,
                     backgroundSize: `${DEFINITION.FLOW_GRID_SIZE}px ${DEFINITION.FLOW_GRID_SIZE}px`
                 }}
             />
 
             <div 
-                
                 className='engaging-flow' 
-                tabIndex={0}
 
                 style={{
-                    transform: `scale(${editorScale / 10})`,
+                    transform: `scale(${editorScaleLev / 10})`,
                 }}
     
-                onKeyDown={() => { 
-                    // console.log("🚀 ~ onKeyDown"); 
-                }}
             >
                 <div 
                     className={`flow-container ${flowDragMode === DEFINITION.FlowActionMode.node ? 'node-dragging': ''}`} 
@@ -344,6 +500,7 @@ export default function EngagingFlow(props) {
                     {nodeHtml}
                 </div>
             </div>
+
         </div>
     )
 }

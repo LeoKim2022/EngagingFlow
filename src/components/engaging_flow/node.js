@@ -153,7 +153,7 @@ function createInsideSvgItem(pathInfo) {
             pathVal += ` L${point.x} ${point.y}`
         })
         
-        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="red"/>);
+        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="green"/>);
     }
 
     const trianglePoints = nodePointerTriangle(pathInfo.edge, itemPoint, itemPointerSize);

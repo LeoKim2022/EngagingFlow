@@ -1,11 +1,9 @@
 import {DEFINITION} from '../engaging_flow/definition'
-// import {isEmptyArray} from '../function/common'
 
-const breakPoint = 0.5;
+const breakPoint = 1 / 2;
 
 function connectPath(params) {
 
-    // fromItem 에서 path가 어느 edge에서 시작할지 판단한다.
     const fromItem = params.fromItem;
     addRightBottom(fromItem);
 
@@ -121,6 +119,7 @@ function findStartEdge(params) {
         toPoint: null
     }
 
+    // flow container 부터의 상대 위치
     const itemRectFromContainer = {
         top: fromItem.top + fromNode.top,
         left: fromItem.left + fromNode.left,
@@ -137,13 +136,14 @@ function findStartEdge(params) {
         y: toNode.top + toNode.height / 2,
     }
 
+    // 아이템에서 fromPoint가 시작할 위치 판단
     if(
         itemRectFromContainer.top <= toNodePointer.y 
         && itemRectFromContainer.bottom >= toNodePointer.y
         && itemRectFromContainer.left <= toNodePointer.x
         && itemRectFromContainer.right >= toNodePointer.x
     ) {
-        // Node의 input point가 fromItem의 내부에 있을 경우 그리지 않는다.
+        // Node의 input point가 fromItem의 내부에 있을 경우 그리지 않으므로
     } else {
         if (
             fromNode.top <= toNodePointer.y 
@@ -186,6 +186,7 @@ function findStartEdge(params) {
         }
     }
 
+    // 아이템에서 fromPoint가 시작할 위치에 따라 fromPoint 설정
     if(edgeResult.edge !== '') {
 
         switch(edgeResult.edge) {
@@ -195,14 +196,6 @@ function findStartEdge(params) {
                     y: itemRectFromContainer.top,
                 }
 
-                // 노드 두께에 의한 좌표 보정.
-                // if(edgeResult.isInsideTargetPointer) {
-                    if(itemRectFromContainer) {
-                        edgeResult.toPoint = toNodePointer;
-                    } else {
-                        edgeResult.toPoint = toNodePointer;
-                    }
-                // }
                 break;
             }
         
@@ -212,14 +205,6 @@ function findStartEdge(params) {
                     y: itemRectFromContainer.bottom,
                 }
 
-                // 노드 두께에 의한 좌표 보정.
-                // if(edgeResult.isInsideTargetPointer) {
-                    if(itemRectFromContainer) {
-                        edgeResult.toPoint = toNodePointer;
-                    } else {
-                        edgeResult.toPoint = toNodePointer;
-                    }
-                // }
                 break;
             }
         
@@ -228,16 +213,12 @@ function findStartEdge(params) {
                     x: itemRectFromContainer.right - DEFINITION.ITEM_POINTER_GAP_X,
                     y: itemRectFromContainer.center.y,
                 }
-
-                if(edgeResult.isInsideTargetPointer) {
-                    edgeResult.toPoint = toNodePointer;
-                } else {
-                    edgeResult.toPoint = toNodePointer;
-                }
+                
                 break;
             }
         }
 
+        edgeResult.toPoint = toNodePointer;
         return(edgeResult);
     } else {
         return(null);
@@ -252,10 +233,10 @@ function findStartEdge(params) {
  */
 function isOutPoint(firstPoint, fromNode) {
     if(
-        fromNode.top + 2 <= firstPoint.y
-        && fromNode.bottom + 2 >= firstPoint.y
-        && fromNode.left + 2 <= firstPoint.x
-        && fromNode.right + 2 >= firstPoint.x
+        fromNode.top <= firstPoint.y
+        && fromNode.bottom >= firstPoint.y
+        && fromNode.left <= firstPoint.x
+        && fromNode.right >= firstPoint.x
     ) {
         return(false);
     } else {
@@ -337,7 +318,7 @@ function searchPath(searchPathParam) {
             if(insideNew === true) {
                 pointers.push(Object.assign({isInside: insideFrom}, newPoint));
             } else {
-
+                // 새로운 포인터가 Node 영역을 벗어났을때
                 const pushPointer = Object.assign({isInside: insideFrom}, newPoint);
                 if(axis === "x") {
                     if(wayPoint.x < toPoint.x) {

@@ -23,7 +23,7 @@ export default function Connection(props) {
     return (
         <path 
             d={pathVal}
-            stroke="red"
+            stroke="green"
             fill="none"
         />
     )
