@@ -2,7 +2,7 @@ import React, { useRef,  } from 'react';
 
 import ItemPanel from './item_panel'
 
-import * as DEFINITION from './definition'
+// import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
 import {nodePointerPentagon, nodePointerTriangle} from '../function/node_pointer_polygon'
 import {connectPath} from '../function/connect_path'
@@ -48,17 +48,6 @@ export default function Node(props) {
     const inputPointerLocation = useRef(null);
     const outputPointerLocation = useRef(null);
 
-    // useEffect(() => {
-    //     if (inputPointerLocation.current) {
-    //         // const rect = inputPointerLocation.current.getBoundingClientRect();
-    //         props.onPointerLocationUpdate();
-    //     }
-    //     if (outputPointerLocation.current) {
-    //         // const rect = outputPointerLocation.current.getBoundingClientRect();
-    //         props.onPointerLocationUpdate();
-    //     }
-    // });
-
     return (
         <div 
             className='flow-node' 
@@ -72,6 +61,12 @@ export default function Node(props) {
                 props.onMouseDown(event);
             }}
         >
+            <div className='node-inside-svg'>
+                <svg>
+                    {insideSvgHtml}
+                </svg>
+            </div>
+
             <div 
                 className='node-content' 
                 style={{
@@ -82,11 +77,6 @@ export default function Node(props) {
                 {itemHtml}
             </div>
 
-            <div className='node-inside-svg'>
-                <svg>
-                    {insideSvgHtml}
-                </svg>
-            </div>
 
             <div className='node-pointer node-inputs'>
                 <div 
@@ -160,17 +150,7 @@ function createInsideSvgItem(pathInfo) {
 
     if(insidePoints.length) {        
         insidePoints.forEach((point, index) => {
-            let lastPointGap = 0;
-            if(index === insidePoints.length - 1) {
-                // 마지막 포인트의 경우는 path 두께와 border만큼 더 그려야 합니다.
-                lastPointGap = DEFINITION.NODE_INNER_PATH_GAP;
-            }
-
-            if(point.direction === 'right') {
-                pathVal += ` L${point.x + lastPointGap} ${point.y}`
-            } else {
-                pathVal += ` L${point.x} ${point.y}`
-            }
+            pathVal += ` L${point.x} ${point.y}`
         })
         
         insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="red"/>);

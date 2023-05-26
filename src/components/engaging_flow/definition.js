@@ -1,17 +1,37 @@
-const NODE_INPUT_POINTER_GAP_X = 3;
-const NODE_INPUT_POINTER_GAP_Y = 2;
+const DEFINITION = Object.freeze({
 
-const NODE_INNER_PATH_GAP = 4; //  Node border + path stroke width
+    NODE_INPUT_POINTER_GAP_X : 3,
+    ITEM_POINTER_GAP_X : 0.5,
+    
+    FLOW_SCALE_MIN : 7,
+    FLOW_SCALE_MAX : 50,
+    FLOW_SCALE_STEP : 1,
 
-const FLOW_DRAG_TARGET = Object.freeze({
-    Flow:    100,
-    Node:    200,
-    Pointer: 300,
+    FLOW_GRID_SIZE : 40,
+    
+    FlowActionMode : Object.freeze({
+        none:    0,
+        flow:    100,
+        node:    200,
+        pointer: 300,
+    }),
+    
+    NodePointerSize : Object.freeze({
+        width:  16,
+        height: 14,
+    }),
+    
+    ItemPointerSize : Object.freeze({
+        width:  9,
+        height: 7,
+    }),
+    
+    MouseButtons : Object.freeze({
+        left:  1,
+        right: 2,
+        wheel: 4,
+        
+    }),
 });
 
-export {
-    NODE_INPUT_POINTER_GAP_X,
-    NODE_INPUT_POINTER_GAP_Y,
-    FLOW_DRAG_TARGET,
-    NODE_INNER_PATH_GAP,
-}
+export {DEFINITION}

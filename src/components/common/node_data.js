@@ -1,4 +1,4 @@
-const nodeWidth  = 100
+const nodeWidth  = 180
 const nodeHeight = nodeWidth * 1.6
 
 const nodeData = [
@@ -11,7 +11,7 @@ const nodeData = [
         items: [
             {
                 id: "a1",
-                top: 10,
+                top: 20,
                 left: 20,
                 width: 50,
                 height: 30,
@@ -55,7 +55,7 @@ const nodeData = [
     },
     {
         id: 'ddd',
-        top: 300,
+        top: 400,
         left: 50,
         width: nodeWidth,
         height: nodeHeight,
@@ -78,7 +78,7 @@ const nodeData = [
     },
     {
         id: 'eee',
-        top: 350,
+        top: 400,
         left: 350,
         width: nodeWidth,
         height: nodeHeight,
@@ -136,7 +136,7 @@ const nodeData = [
     },
     {
         id: 'fff',
-        top: 350,
+        top: 400,
         left: 550,
         width: nodeWidth,
         height: nodeHeight,
@@ -151,7 +151,7 @@ const nodeData = [
     },
     {
         id: 'ggg',
-        top: 500,
+        top: 700,
         left: 50,
         width: nodeWidth,
         height: nodeHeight,
@@ -172,7 +172,7 @@ const nodeData = [
     },
     {
         id: 'hhh',
-        top: 550,
+        top: 700,
         left: 350,
         width: nodeWidth,
         height: nodeHeight,
@@ -193,7 +193,7 @@ const nodeData = [
     },
     {
         id: 'iii',
-        top: 600,
+        top: 700,
         left: 550,
         width: nodeWidth,
         height: nodeHeight,

@@ -1,4 +1,4 @@
-import * as DEFINITION from '../engaging_flow/definition'
+import {DEFINITION} from '../engaging_flow/definition'
 // import {isEmptyArray} from '../function/common'
 
 const breakPoint = 0.5;
@@ -15,19 +15,14 @@ function connectPath(params) {
     const toNode = params.toNode;
     addRightBottom(toNode);
 
+    // 아이템 포인터가 생기는 edge
     const nearEdgeResult = findStartEdge(params);
     if(!nearEdgeResult) {
         return(null);
     }
 
-    // const nearEdgeResult = nearEdge(fromNode, fromItem);    
-    
-    // 경계선과 외곽선 사이에서 아이템이 없는 방향 우선
-    // const targetEdge = checkObstacle(fromNode, fromItem, nearEdgeResult);
-    // if(!targetEdge) return(null);
-
-    const pathPoints = calcPathPoints(nearEdgeResult, params);
-
+    // path 경로 생성
+    const pathPoints = makePathPoints(nearEdgeResult, params);
     const svgFrom = nearEdgeResult.fromPoint;
     const svgTo   = nearEdgeResult.toPoint;
 
@@ -70,7 +65,7 @@ function addRightBottom(rect) {
  * 
  * @param nearEdgeResult 
  */
-function calcPathPoints(nearEdgeResult, params) {
+function makePathPoints(nearEdgeResult, params) {
 
     const edge = nearEdgeResult.edge;
     
@@ -107,105 +102,6 @@ function calcPathPoints(nearEdgeResult, params) {
 
 
 
-/*
-function checkObstacle(fromNode, fromItem, nearEdgeResult) {
-
-    let findEdge = null;
-
-    // 경계선 양끝에서 allowancesEdge 만큼 제외 하고 허용
-    const allowancesEdge = 0.3;
-
-    const edgeLimit = {
-        left:  fromItem.left + (fromItem.width * allowancesEdge),
-        right: fromItem.left + (fromItem.width * (1 - allowancesEdge)),
-        top: fromItem.top + (fromItem.height * allowancesEdge),
-        bottom: fromItem.top + (fromItem.height * (1 - allowancesEdge)),
-    }
-
-    nearEdgeResult.forEach((edgeItem) => {
-        if(findEdge) return;
-
-        switch(edgeItem.edge) {
-            case 'top': {
-                let hasObstacle = false;
-                if(!isEmptyArray(fromNode.items)) {
-                    fromNode.items.forEach(nodeItem => {
-                        if(hasObstacle) return;
-                        if(nodeItem.id === fromItem.id) return;
-                        if(nodeItem.top >= fromItem.top) return;
-
-                        // edge 가운데 그린다고 가정할때, 기준이하로 겹치는 경우는 허용 가능하므로..
-                        if(!(nodeItem.right < edgeLimit.left || nodeItem.left > edgeLimit.right)) {
-                            hasObstacle = true;
-                            return;
-                        }
-                        
-                    });
-                }
-
-                if(!hasObstacle) findEdge = edgeItem;
-                break;
-            }
-
-            case 'right': {
-                let hasObstacle = false;
-                if(!isEmptyArray(fromNode.items)) {
-                    fromNode.items.forEach(nodeItem => {
-                        if(hasObstacle) return;
-                        if(nodeItem.id === fromItem.id) return;
-                        if(nodeItem.right <= fromItem.right) return;
-
-                        if(!(nodeItem.bottom < edgeLimit.top || nodeItem.top > edgeLimit.bottom)) {
-                            hasObstacle = true;
-                            return;
-                        }
-                        
-                    });
-                }
-                if(!hasObstacle) findEdge = edgeItem;
-                break;
-            }
-
-            case 'bottom': {
-                let hasObstacle = false;
-                if(!isEmptyArray(fromNode.items)) {
-                    fromNode.items.forEach(nodeItem => {
-                        if(hasObstacle) return;
-                        if(nodeItem.id === fromItem.id) return;
-                        if(nodeItem.bottom <= fromItem.bottom) return;
-
-                        if(!(nodeItem.right < edgeLimit.left || nodeItem.left > edgeLimit.right)) {
-                            hasObstacle = true;
-                            return;
-                        }
-                        
-                    });
-                }
-                if(!hasObstacle) findEdge = edgeItem;
-                break;
-            }
-        
-            default: {
-                return;
-            }
-        }
-    });
-
-    if(findEdge) {
-        return(findEdge);
-    } else {
-        if(!isEmptyArray(nearEdgeResult)) {
-            return(nearEdgeResult[0]);
-        } else {
-            return(null);
-        }
-    }
-
-}
-*/
-
-
-
 /**
  * 
  * @param rect 
@@ -238,7 +134,7 @@ function findStartEdge(params) {
 
     const toNodePointer = {
         x: toNode.left - (nodePointerSize.width / 2) + DEFINITION.NODE_INPUT_POINTER_GAP_X,
-        y: toNode.top + (toNode.height / 2) + DEFINITION.NODE_INPUT_POINTER_GAP_Y,
+        y: toNode.top + toNode.height / 2,
     }
 
     if(
@@ -329,7 +225,7 @@ function findStartEdge(params) {
         
             default: {
                 edgeResult.fromPoint = {
-                    x: itemRectFromContainer.right,
+                    x: itemRectFromContainer.right - DEFINITION.ITEM_POINTER_GAP_X,
                     y: itemRectFromContainer.center.y,
                 }
 
@@ -366,41 +262,6 @@ function isOutPoint(firstPoint, fromNode) {
         return(true);
     }
 }
-
-
-/*
-function nearEdge(node, item) {
-
-    const nearEdgeResult = [];
-
-    nearEdgeResult.push({
-        edge: 'top',
-        distance: item.top,
-    });
-
-    nearEdgeResult.push({
-        edge: 'bottom',
-        distance: node.height - item.bottom,
-    });
-
-    nearEdgeResult.push({
-        edge: 'right',
-        distance: node.width - item.right,
-    });
-
-    nearEdgeResult.sort((a, b) => { 
-        if(a.distance > b.distance) {
-            return(1);
-        } else if(a.distance < b.distance) {
-            return(-1);
-        } else {
-            return(0);
-        }
-    });
-
-    return(nearEdgeResult);
-}
-*/
 
 
 
@@ -493,7 +354,7 @@ function searchPath(searchPathParam) {
                         pushPointer.y = fromNode.top;
                         pointers.push(pushPointer);
                     } else {
-                        pushPointer.y = fromNode.bottom + (DEFINITION.NODE_INPUT_POINTER_GAP_Y * 2);
+                        pushPointer.y = fromNode.bottom;
                         pointers.push(pushPointer);
                     }    
                 }

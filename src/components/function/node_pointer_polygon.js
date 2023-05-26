@@ -47,9 +47,9 @@ function nodePointerTriangle(edge, point, itemPointerSize) {
             height = itemPointerSize.width;
 
             pointsVal = `
-                ${point.x + 1}, ${point.y - height/2} 
-                ${point.x + 1 + width}, ${point.y}
-                ${point.x + 1}, ${point.y + height/2} 
+                ${point.x}, ${point.y - height/2} 
+                ${point.x + width}, ${point.y}
+                ${point.x}, ${point.y + height/2} 
                 `;
             break;
         }

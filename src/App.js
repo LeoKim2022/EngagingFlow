@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import './App.css'
 
 import EngagingFlow from './components/engaging_flow/engaging_flow'
@@ -6,7 +7,7 @@ import EngagingFlow from './components/engaging_flow/engaging_flow'
 /************************ begin: firebase hosting config **********************/  
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
+// Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
@@ -23,13 +24,28 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 /************************ end: firebase hosting config **********************/  
 
-
 function App() {
+
+    const [flowSize, setFlowSize] = useState({ width: 0, height: 0 });
+
+    const flowBoxRef = useRef(null);
+
+    useEffect(() => {
+        if (flowBoxRef.current) {
+            setFlowSize({
+                width : flowBoxRef.current.offsetWidth,
+                height: flowBoxRef.current.offsetHeight,
+            });
+        }
+    }, []);    
+
     return (
         <div 
             className="App"
         >
-            <EngagingFlow width={`100%`} height={`100%`}/>
+            <div ref={flowBoxRef} className='engaging-flow-box' style={{width: '1400px', height: '1000px', position: 'absolute', top: '100px', left: '100px'}}>
+                <EngagingFlow boxWidth={flowSize.width} boxHeight={flowSize.height}/>
+            </div>
         </div>
     )
 }
