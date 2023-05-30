@@ -75,7 +75,7 @@ export default function EngagingFlow(props) {
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const [flowData, setFlowData] = useState([]);
+    const [flowData, setFlowData] = useState(nodeData);
 
     /**********************************************************************/
     // event handler
