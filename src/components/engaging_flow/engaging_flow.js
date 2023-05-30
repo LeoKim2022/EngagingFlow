@@ -1,5 +1,4 @@
-/* eslint-disable */
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
@@ -58,10 +57,9 @@ export default function EngagingFlow(props) {
     const NodePointerSize = DEFINITION.NodePointerSize;
     const ItemPointerSize = DEFINITION.ItemPointerSize;
 
-    // 사용자의 드래그가 화면 끝에서 화면 끝까지 발생한다고 가정했을때,
-    // 양쪽으로 box의 크기만큼 Grid영역이 필요하므로 실제 사용할때는 본체, 좌우를 고려하여 3배를 사용해야 한다.
-    const parentWidthWithGap  = props.boxWidth - (props.boxWidth % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
-    const parentHeightWithGap = props.boxHeight - (props.boxHeight % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
+    const parentWidthWithGap  = props.boxSize.width - (props.boxSize.width % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
+    const parentHeightWithGap = props.boxSize.height - (props.boxSize.height % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
+
     /**********************************************************************/
     // set useState
     /**********************************************************************/
@@ -76,16 +74,7 @@ export default function EngagingFlow(props) {
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const allNodeState = [];
-    nodeData.forEach((nodeItem) => {
-        const [nodeData, setNodeData] = useState(nodeItem);
-
-        allNodeState.push({
-            id: nodeItem.id,
-            state: nodeData,
-            stateFunc: setNodeData,
-        })
-    });
+    const [flowData, setFlowData] = useState(nodeData);
 
     /**********************************************************************/
     // event handler
@@ -129,6 +118,10 @@ export default function EngagingFlow(props) {
                 setSpaceKeyHold(true);
                 break;
             }
+
+            default: {
+                break
+            }
         }
     }
 
@@ -143,6 +136,10 @@ export default function EngagingFlow(props) {
             case DEFINITION.KeyCode.space: {
                 setSpaceKeyHold(false);
                 break;
+            }
+
+            default: {
+                break
             }
         }
     }
@@ -167,7 +164,7 @@ export default function EngagingFlow(props) {
                     }
             
                     setDragTargetNode(targetNode);
-                    const findItem = allNodeState.find((element) => { return(element.id === targetNode.getAttribute('id')) });
+                    const findItem = flowData.find((element) => { return(element.id === targetNode.getAttribute('id')) });
                     if(!findItem) {
                         setFlowDragMode(DEFINITION.FlowActionMode.none);
                     }
@@ -175,8 +172,8 @@ export default function EngagingFlow(props) {
                     setTargetDragInfo({
                         clientX: event.clientX,
                         clientY: event.clientY,
-                        targetTop : findItem.state.top,
-                        targetLeft: findItem.state.left,
+                        targetTop : findItem.top,
+                        targetLeft: findItem.left,
                     });                    
                 }
                 break;
@@ -205,7 +202,7 @@ export default function EngagingFlow(props) {
      * 
      */    
     function handleMouseEnter() {
-        document.getElementById('engaging_editor').focus();
+        document.getElementById(DEFINITION.FLOW_EDITOR_ID).focus();
     };
 
     
@@ -233,10 +230,11 @@ export default function EngagingFlow(props) {
      */    
     function handleMouseMove(event) {
         if (flowDragMode === DEFINITION.FlowActionMode.node && dragTargetNode) {
-            const findItem = allNodeState.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
+            const copyFlowData = JSON.parse(JSON.stringify(flowData));
+
+            const findItem = copyFlowData.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
     
             if(findItem) {
-                const nodeState   = JSON.parse(JSON.stringify(findItem.state));
                 const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
                 let newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
@@ -245,10 +243,15 @@ export default function EngagingFlow(props) {
                 newTop = Math.round(newTop / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
                 newLeft = Math.round(newLeft / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
 
-                nodeState.top  = newTop;
-                nodeState.left = newLeft;
-
-                findItem.stateFunc(nodeState);
+                if(
+                    findItem.top !== newTop ||
+                    findItem.left !== newLeft
+                ) {
+                    findItem.top  = newTop;
+                    findItem.left = newLeft;
+    
+                    setFlowData(copyFlowData);
+                }
             }
         } else if(flowDragMode === DEFINITION.FlowActionMode.flow) {
             const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
@@ -269,7 +272,7 @@ export default function EngagingFlow(props) {
      * 
      * @param event 
      */    
-    function handleWheel(event) {
+    const handleWheel = useCallback((event) => {
         
         if(event.ctrlKey) {
             event.preventDefault();
@@ -292,7 +295,7 @@ export default function EngagingFlow(props) {
                 const prevScaleOrigin = prevScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
                 const newScaleOrigin  = newScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
-                const editorPosition = document.getElementById('engaging_editor').getBoundingClientRect();
+                const editorPosition = document.getElementById(DEFINITION.FLOW_EDITOR_ID).getBoundingClientRect();
                 
                 const locFromEditor = {
                     x: event.clientX - editorPosition.left,
@@ -321,7 +324,7 @@ export default function EngagingFlow(props) {
                 left: containerPosition.left,
             })
         }
-    };
+    }, [containerPosition, editorScaleLev]);
 
 
     /**********************************************************************/
@@ -359,14 +362,14 @@ export default function EngagingFlow(props) {
      * 
      * @param  
      */
-    function updateGridPosition() {
+    const updateGridPosition = useCallback(() => {
         const gridPosition = getGridPosition(editorScaleLev, containerPosition, {
             width: parentWidthWithGap,
             height: parentHeightWithGap
         });
 
         setGridPosition(gridPosition);
-    }
+    }, [editorScaleLev, containerPosition, parentWidthWithGap, parentHeightWithGap]);
 
 
     /**********************************************************************/
@@ -387,20 +390,20 @@ export default function EngagingFlow(props) {
                 refCurrent.removeEventListener('wheel', handleWheel);
             } 
         });
-    }, [editorScaleLev, containerPosition]);
+    }, [updateGridPosition, handleWheel]);
 
 
     /**********************************************************************/
     // make html parts
     /**********************************************************************/
-    const nodeHtml = allNodeState.map((node, index) => {
+    const nodeHtml = flowData.map((node, index) => {
         return(
             <Node 
                 key={index} 
-                width={node.state.width} 
-                height={node.state.height} 
-                node={node.state}
-                childData={allNodeState}
+                width={node.width} 
+                height={node.height} 
+                node={node}
+                childData={flowData}
                 containerPosition={containerPosition}
                 nodePointerSize={NodePointerSize}
                 itemPointerSize={ItemPointerSize}
@@ -412,19 +415,17 @@ export default function EngagingFlow(props) {
 
     const connectionHtml = [];
     
-    allNodeState.forEach((node, index) => {
+    flowData.forEach((node, index) => {
         
-        const nodeState = node.state;
-
-        if(!isEmptyArray(nodeState.items)) {
-            nodeState.items.forEach((nodeItem, index) => {
+        if(!isEmptyArray(node.items)) {
+            node.items.forEach((nodeItem, index) => {
                 if(nodeItem.action !== undefined) {
-                    const targetNode = allNodeState.find((element) => { return(element.id === nodeItem.action.id) });
+                    const targetNode = flowData.find((element) => { return(element.id === nodeItem.action.id) });
                     if(targetNode) {
 
                         const pathInfo = connectPath({
-                            toNode: targetNode.state,
-                            fromNode: nodeState,
+                            toNode: targetNode,
+                            fromNode: node,
                             fromItem: nodeItem,
                             containerPosition: containerPosition,
                             nodePointerSize: NodePointerSize,
@@ -434,8 +435,8 @@ export default function EngagingFlow(props) {
                         if(pathInfo) {
                             connectionHtml.push(
                                 <Connection 
-                                    key={`${nodeState.id}.${nodeItem.id}`} 
-                                    fromNode={nodeState} 
+                                    key={`${node.id}.${nodeItem.id}`} 
+                                    fromNode={node} 
                                     fromItem={nodeItem} 
                                     pathInfo={pathInfo} 
                                 />
@@ -450,7 +451,7 @@ export default function EngagingFlow(props) {
 
     return(
         <div 
-            id='engaging_editor'
+            id={DEFINITION.FLOW_EDITOR_ID}
             className='engaging-editor' 
 
             ref={engagingEditorRef}
@@ -480,11 +481,9 @@ export default function EngagingFlow(props) {
 
             <div 
                 className='engaging-flow' 
-
                 style={{
                     transform: `scale(${editorScaleLev / 10})`,
                 }}
-    
             >
                 <div 
                     className={`flow-container ${flowDragMode === DEFINITION.FlowActionMode.node ? 'node-dragging': ''}`} 
@@ -501,6 +500,21 @@ export default function EngagingFlow(props) {
                 </div>
             </div>
 
+            <FlowScrollBar 
+                nodeData={flowData} 
+                type={DEFINITION.ScrollBarType.horizontal}
+                containerPosition={containerPosition}
+                boxSize={props.boxSize}
+                editorScaleLev={editorScaleLev}
+            />
+
+            <FlowScrollBar 
+                nodeData={flowData} 
+                type={DEFINITION.ScrollBarType.vertical}
+                containerPosition={containerPosition}
+                boxSize={props.boxSize}
+                editorScaleLev={editorScaleLev}
+            />
         </div>
     )
 }

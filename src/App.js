@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './App.css'
 
 import EngagingFlow from './components/engaging_flow/engaging_flow'
@@ -26,13 +26,35 @@ initializeApp(firebaseConfig);
 
 function App() {
 
-    const [flowSize, setFlowSize] = useState({ width: 0, height: 0 });
+    const [flowSize, setFlowSize] = useState({
+        width : 0,
+        height: 0,
+    });
 
     const appRef = useRef(null);
     const flowBoxRef = useRef(null);
 
+    const handleResize = useCallback(() => {
+        window.requestAnimationFrame(() => {
+            if(flowBoxRef.current) {
+                if(
+                    flowSize.width !== flowBoxRef.current.offsetWidth ||
+                    flowSize.height !== flowBoxRef.current.offsetHeight
+                ) {
+                    setFlowSize({
+                        width : flowBoxRef.current.offsetWidth,
+                        height: flowBoxRef.current.offsetHeight,
+                    });
+                }
+            }
+        });
+    }, [flowSize]);
+
     useEffect(() => {
-        if(flowBoxRef.current) {
+        if(
+            flowSize.width !== flowBoxRef.current.offsetWidth ||
+            flowSize.height !== flowBoxRef.current.offsetHeight
+        ) {
             setFlowSize({
                 width : flowBoxRef.current.offsetWidth,
                 height: flowBoxRef.current.offsetHeight,
@@ -44,8 +66,13 @@ function App() {
                 event.preventDefault();
                 event.stopPropagation();
             }, { passive: false });
+
+            window.addEventListener('resize', handleResize);
+            return(() => {
+                window.removeEventListener('resize', handleResize);
+            })
         }
-    }, []);
+    }, [handleResize, flowSize]);
 
     return (
         <div 
@@ -63,7 +90,7 @@ function App() {
                     left: '50px'
                 }}
             >
-                <EngagingFlow boxWidth={flowSize.width} boxHeight={flowSize.height}/>
+                <EngagingFlow boxSize={flowSize}/>
             </div>
         </div>
     )

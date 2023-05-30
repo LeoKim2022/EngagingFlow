@@ -1,8 +1,9 @@
 const DEFINITION = Object.freeze({
-
     NODE_INPUT_POINTER_GAP_X : 3,
     ITEM_POINTER_GAP_X : 1 / 2,
     
+    FLOW_EDITOR_ID : 'engaging_editor',
+
     FLOW_SCALE_MIN : 7,
     FLOW_SCALE_MAX : 50,
     FLOW_SCALE_STEP : 1,

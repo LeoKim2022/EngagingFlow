@@ -24,7 +24,7 @@ export default function Node(props) {
                 const targetNode = childData.find((element) => { return(element.id === item.action.id) });
 
                 pathInfo = connectPath({
-                    toNode: targetNode.state,
+                    toNode: targetNode,
                     fromNode: node,
                     fromItem: item,
                     containerPosition: props.containerPosition,
