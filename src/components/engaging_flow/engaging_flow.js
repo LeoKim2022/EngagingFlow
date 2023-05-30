@@ -456,27 +456,27 @@ export default function EngagingFlow(props) {
             });
         }
 
-        if(node.action) {
-            // TODO: node 에서 node로 가는 connection
-            const targetNode = flowData.find((element) => { return(element.id === node.action.id) });
-            if(targetNode) {
-                const pathInfo = connectPath({
-                    toNode: targetNode,
-                    fromNode: node,
-                    fromItem: {
-                        top: 0,
-                        left: 0,
-                        width: DEFINITION.ItemPointerSize.width,
-                        height: DEFINITION.ItemPointerSize.height,
-                    },
-                    containerPosition: containerPosition,
-                    nodePointerSize: NodePointerSize,
-                    itemPointerSize: ItemPointerSize,
-                });
+        // if(node.action) {
+        //     // TODO: node 에서 node로 가는 connection
+        //     const targetNode = flowData.find((element) => { return(element.id === node.action.id) });
+        //     if(targetNode) {
+        //         const pathInfo = connectPath({
+        //             toNode: targetNode,
+        //             fromNode: node,
+        //             fromItem: {
+        //                 top: 0,
+        //                 left: 0,
+        //                 width: DEFINITION.ItemPointerSize.width,
+        //                 height: DEFINITION.ItemPointerSize.height,
+        //             },
+        //             containerPosition: containerPosition,
+        //             nodePointerSize: NodePointerSize,
+        //             itemPointerSize: ItemPointerSize,
+        //         });
 
-                //
-            }
-        }
+        //         //
+        //     }
+        // }
     })
 
     return(
