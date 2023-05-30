@@ -26,7 +26,10 @@ const nodeData = [
                     id: "eee",
                 }
             },
-        ]
+        ],
+        action: {
+            id: "bbb",
+        }
     },
     {
         id: 'bbb',

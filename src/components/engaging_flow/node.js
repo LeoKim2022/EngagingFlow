@@ -58,7 +58,7 @@ export default function Node(props) {
             }}
             onMouseDown={(event) => {
                 event.stopPropagation();
-                props.onMouseDown(event);
+                props.onNodeMouseDown(event);
             }}
         >
             <div className='node-inside-svg'>
@@ -82,6 +82,9 @@ export default function Node(props) {
                 <div 
                     className='node-input' 
                     ref={inputPointerLocation}
+
+                    onMouseEnter={props.onInputPointerMouseEnter}
+                    onMouseLeave={props.onInputPointerMouseLeave}
                 >
                     <svg width={props.nodePointerSize.width} height={props.nodePointerSize.height}>
                         <polygon points={svgPolygon} />
@@ -95,7 +98,7 @@ export default function Node(props) {
                     ref={outputPointerLocation}
                     onMouseDown={(event) => {
                         event.stopPropagation();
-                        // TODO: 아웃풋 포인터에서 마우스 다운이 발생하면 노드를 그리는 화면으로 안내가 되어야 함.
+                        props.onOutputPointerMouseDown(event);
                     }}
                 >
                     <svg width={props.nodePointerSize.width} height={props.nodePointerSize.height}>

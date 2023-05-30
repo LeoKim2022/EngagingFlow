@@ -9,6 +9,7 @@ import './engaging_flow.css';
 import Node from './node'
 import Connection from './connection'
 import FlowScrollBar from './flow_scrollbar'
+import * as PointerHandle  from './node_pointer_handle'
 
 
 /**
@@ -74,7 +75,7 @@ export default function EngagingFlow(props) {
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const [flowData, setFlowData] = useState(nodeData);
+    const [flowData, setFlowData] = useState([]);
 
     /**********************************************************************/
     // event handler
@@ -185,7 +186,6 @@ export default function EngagingFlow(props) {
             }
         
             case DEFINITION.MouseButtons.wheel: {
-                console.log("🚀 ~ DEFINITION.MouseButtons.wheel");
                 initFlowDragMode(event);
                 break;
             }
@@ -263,6 +263,9 @@ export default function EngagingFlow(props) {
                 top : newTop,
                 left: newLeft,
             });
+        } else if(flowDragMode === DEFINITION.FlowActionMode.pointer) {
+            console.log("🚀 ~ event:", event);
+            // TODO: pointer에서 마우스 down이 발생한후 마우스가 움직일때
         }
     };
 
@@ -407,8 +410,15 @@ export default function EngagingFlow(props) {
                 containerPosition={containerPosition}
                 nodePointerSize={NodePointerSize}
                 itemPointerSize={ItemPointerSize}
-                onMouseDown={handleMouseDownOnNode}
-                // onPointerLocationUpdate={updatePointerLocation}
+
+                onNodeMouseDown={handleMouseDownOnNode}
+
+                onOutputPointerMouseDown={(event) => {
+                    PointerHandle.handleMouseDownOutput(event, setFlowDragMode);
+                }}
+
+                onInputPointerMouseEnter={PointerHandle.handleMouseEnterInput}
+                onInputPointerMouseLeave={PointerHandle.handleMouseLeaveInput}
             />
         )
     })
@@ -416,13 +426,11 @@ export default function EngagingFlow(props) {
     const connectionHtml = [];
     
     flowData.forEach((node, index) => {
-        
         if(!isEmptyArray(node.items)) {
             node.items.forEach((nodeItem, index) => {
                 if(nodeItem.action !== undefined) {
                     const targetNode = flowData.find((element) => { return(element.id === nodeItem.action.id) });
                     if(targetNode) {
-
                         const pathInfo = connectPath({
                             toNode: targetNode,
                             fromNode: node,
@@ -446,6 +454,28 @@ export default function EngagingFlow(props) {
                     }
                 }
             });
+        }
+
+        if(node.action) {
+            // TODO: node 에서 node로 가는 connection
+            const targetNode = flowData.find((element) => { return(element.id === node.action.id) });
+            if(targetNode) {
+                const pathInfo = connectPath({
+                    toNode: targetNode,
+                    fromNode: node,
+                    fromItem: {
+                        top: 0,
+                        left: 0,
+                        width: DEFINITION.ItemPointerSize.width,
+                        height: DEFINITION.ItemPointerSize.height,
+                    },
+                    containerPosition: containerPosition,
+                    nodePointerSize: NodePointerSize,
+                    itemPointerSize: ItemPointerSize,
+                });
+
+                //
+            }
         }
     })
 
@@ -494,6 +524,10 @@ export default function EngagingFlow(props) {
                 >
                     <svg className='node-connects'>
                         {connectionHtml}
+                        {/* TODO: 사용자가 직접 드로우 하는 connection 전용 */}
+                        <Connection 
+                            
+                        />
                     </svg>
 
                     {nodeHtml}
@@ -515,6 +549,23 @@ export default function EngagingFlow(props) {
                 boxSize={props.boxSize}
                 editorScaleLev={editorScaleLev}
             />
+
+            <div 
+                style={{
+                    position: 'absolute',
+                    width: 200,
+                    height: 60,
+                    bottom: 10,
+                    right: 10,
+                    backgroundColor: 'gray',
+                }}
+
+                onClick={() => {
+                    setFlowData(nodeData);
+                }}
+            >
+                <span>Load Data</span>
+            </div>
         </div>
     )
 }
