@@ -75,7 +75,7 @@ export default function EngagingFlow(props) {
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const [flowData, setFlowData] = useState(nodeData);
+    const [flowData, setFlowData] = useState([]);
 
     /**********************************************************************/
     // event handler
@@ -264,7 +264,7 @@ export default function EngagingFlow(props) {
                 left: newLeft,
             });
         } else if(flowDragMode === DEFINITION.FlowActionMode.pointer) {
-            console.log("🚀 ~ event:", event);
+            // console.log("🚀 ~ event:", event);
             // TODO: pointer에서 마우스 down이 발생한후 마우스가 움직일때
         }
     };

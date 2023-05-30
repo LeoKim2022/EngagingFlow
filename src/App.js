@@ -31,7 +31,6 @@ function App() {
         height: 0,
     });
 
-    const appRef = useRef(null);
     const flowBoxRef = useRef(null);
 
     const handleResize = useCallback(() => {
@@ -50,33 +49,19 @@ function App() {
         });
     }, [flowSize]);
 
+    window.addEventListener('resize', handleResize);
+
     useEffect(() => {
-        if(
-            flowSize.width !== flowBoxRef.current.offsetWidth ||
-            flowSize.height !== flowBoxRef.current.offsetHeight
-        ) {
+        if(flowBoxRef.current) {
             setFlowSize({
                 width : flowBoxRef.current.offsetWidth,
                 height: flowBoxRef.current.offsetHeight,
             });
         }
-
-        if(appRef.current) {
-            appRef.current.addEventListener('wheel', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-            }, { passive: false });
-
-            window.addEventListener('resize', handleResize);
-            return(() => {
-                window.removeEventListener('resize', handleResize);
-            })
-        }
-    }, [handleResize, flowSize]);
+    }, []);
 
     return (
         <div 
-            ref={appRef} 
             className="App"
         >
             <div 
