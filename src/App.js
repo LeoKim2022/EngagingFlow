@@ -3,7 +3,6 @@ import './App.css'
 
 import EngagingFlow from './components/engaging_flow/engaging_flow'
 
-
 /************************ begin: firebase hosting config **********************/  
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";

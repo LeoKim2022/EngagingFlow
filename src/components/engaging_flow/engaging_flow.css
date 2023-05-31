@@ -101,7 +101,6 @@
 .node-inside-svg>svg>path {
     fill: none;
     stroke-width: 1.5px;
-    opacity: 0.3;
 }
 
 .node-inside-svg>svg>polygon {

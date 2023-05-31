@@ -1,6 +1,10 @@
 import {isEmptyArray} from '../function/common'
 
+import {useGlobalConfig} from '../context_global_config'
+
 export default function Connection(props) {
+
+    const [globalConfig, ] = useGlobalConfig();
 
     if(!props.pathInfo || isEmptyArray(props.pathInfo.pathPoints)) return;
 
@@ -23,7 +27,8 @@ export default function Connection(props) {
     return (
         <path 
             d={pathVal}
-            stroke="green"
+            stroke={globalConfig.lineColor}
+            opacity={globalConfig.opacity}
             fill="none"
         />
     )

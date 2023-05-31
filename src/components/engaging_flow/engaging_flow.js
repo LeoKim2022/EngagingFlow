@@ -11,6 +11,8 @@ import Connection from './connection'
 import FlowScrollBar from './flow_scrollbar'
 import * as PointerHandle  from './node_pointer_handle'
 
+import {GlobalConfigProvider} from '../context_global_config'
+import ControlPanel from '../control_panel';
 
 /**
  * 
@@ -86,7 +88,11 @@ export default function EngagingFlow(props) {
      * @param event 
      */
     function handleFlowMouseDown(event) {
+        console.log("🚀 ~ event.buttons:", event.buttons);
+
         switch(event.buttons) {
+
+            
             case DEFINITION.MouseButtons.left: {
                 if(spaceKeyHold) initFlowDragMode(event);
                 break;
@@ -480,93 +486,99 @@ export default function EngagingFlow(props) {
     })
 
     return(
-        <div 
-            id={DEFINITION.FLOW_EDITOR_ID}
-            className='engaging-editor' 
-
-            ref={engagingEditorRef}
-
-            onMouseDown={handleFlowMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-
-            onKeyDown={handleKeyDown}
-            onKeyUp={handleKeyUp}
-
-            tabIndex={0}
-        >
+        <GlobalConfigProvider>
             <div 
-                className='engaging-grid' 
-                style={{
-                    top:`${gridPosition.top}px`,
-                    left:`${gridPosition.left}px`,
-                    width: `${parentWidthWithGap * 3}px`,
-                    height: `${parentHeightWithGap * 3}px`,
-                    transform: `scale(${editorScaleLev / 10})`,
-                    backgroundSize: `${DEFINITION.FLOW_GRID_SIZE}px ${DEFINITION.FLOW_GRID_SIZE}px`
-                }}
-            />
+                id={DEFINITION.FLOW_EDITOR_ID}
+                className='engaging-editor' 
 
-            <div 
-                className='engaging-flow' 
-                style={{
-                    transform: `scale(${editorScaleLev / 10})`,
-                }}
+                ref={engagingEditorRef}
+
+                onMouseDown={handleFlowMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+
+                onKeyDown={handleKeyDown}
+                onKeyUp={handleKeyUp}
+
+                tabIndex={0}
             >
                 <div 
-                    className={`flow-container ${flowDragMode === DEFINITION.FlowActionMode.node ? 'node-dragging': ''}`} 
+                    className='engaging-grid' 
                     style={{
-                        top: containerPosition.top, 
-                        left: containerPosition.left
-                    }} 
+                        top:`${gridPosition.top}px`,
+                        left:`${gridPosition.left}px`,
+                        width: `${parentWidthWithGap * 3}px`,
+                        height: `${parentHeightWithGap * 3}px`,
+                        transform: `scale(${editorScaleLev / 10})`,
+                        backgroundSize: `${DEFINITION.FLOW_GRID_SIZE}px ${DEFINITION.FLOW_GRID_SIZE}px`
+                    }}
+                />
+                
+                <div 
+                    className='engaging-flow' 
+                    style={{
+                        transform: `scale(${editorScaleLev / 10})`,
+                    }}
                 >
-                    <svg className='node-connects'>
-                        {connectionHtml}
-                        {/* TODO: 사용자가 직접 드로우 하는 connection 전용 */}
-                        <Connection 
-                            
-                        />
-                    </svg>
+                    <div 
+                        className={`flow-container ${flowDragMode === DEFINITION.FlowActionMode.node ? 'node-dragging': ''}`} 
+                        style={{
+                            top: containerPosition.top, 
+                            left: containerPosition.left
+                        }} 
+                    >
+                        <svg className='node-connects'>
+                            {connectionHtml}
+                            {/* TODO: 사용자가 직접 드로우 하는 connection 전용 */}
+                            <Connection 
+                                
+                            />
+                        </svg>
 
-                    {nodeHtml}
+                        {nodeHtml}
+                    </div>
+                </div>
+
+                <FlowScrollBar 
+                    nodeData={flowData} 
+                    type={DEFINITION.ScrollBarType.horizontal}
+                    containerPosition={containerPosition}
+                    boxSize={props.boxSize}
+                    editorScaleLev={editorScaleLev}
+                />
+
+                <FlowScrollBar 
+                    nodeData={flowData} 
+                    type={DEFINITION.ScrollBarType.vertical}
+                    containerPosition={containerPosition}
+                    boxSize={props.boxSize}
+                    editorScaleLev={editorScaleLev}
+                />
+
+                <div 
+                    style={{
+                        position: 'absolute',
+                        width: 'fit-content',
+                        height: 'fit-content',
+                        bottom: 20,
+                        right: 20,
+                        padding: `15px 25px`,
+                        borderRadius: 10,
+                        backgroundColor: 'gray',
+                        color: 'white',
+                    }}
+
+                    onClick={() => {
+                        setFlowData(nodeData);
+                    }}
+                >
+                    <span>Load Data</span>
                 </div>
             </div>
-
-            <FlowScrollBar 
-                nodeData={flowData} 
-                type={DEFINITION.ScrollBarType.horizontal}
-                containerPosition={containerPosition}
-                boxSize={props.boxSize}
-                editorScaleLev={editorScaleLev}
-            />
-
-            <FlowScrollBar 
-                nodeData={flowData} 
-                type={DEFINITION.ScrollBarType.vertical}
-                containerPosition={containerPosition}
-                boxSize={props.boxSize}
-                editorScaleLev={editorScaleLev}
-            />
-
-            <div 
-                style={{
-                    position: 'absolute',
-                    width: 200,
-                    height: 60,
-                    bottom: 10,
-                    right: 10,
-                    backgroundColor: 'gray',
-                }}
-
-                onClick={() => {
-                    setFlowData(nodeData);
-                }}
-            >
-                <span>Load Data</span>
-            </div>
-        </div>
+            <ControlPanel />
+        </GlobalConfigProvider>
     )
 }
 

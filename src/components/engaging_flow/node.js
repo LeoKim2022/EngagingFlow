@@ -7,7 +7,11 @@ import {isEmptyArray} from '../function/common'
 import {nodePointerPentagon, nodePointerTriangle} from '../function/node_pointer_polygon'
 import {connectPath} from '../function/connect_path'
 
+import {useGlobalConfig} from '../context_global_config'
+
 export default function Node(props) {
+
+    const [globalConfig, ] = useGlobalConfig();
 
     const svgPolygon = nodePointerPentagon(props.nodePointerSize);
     const childData = props.childData;
@@ -32,7 +36,7 @@ export default function Node(props) {
                     itemPointerSize: props.itemPointerSize,
                 });
 
-                const insideSvgItem = createInsideSvgItem(pathInfo);
+                const insideSvgItem = createInsideSvgItem(pathInfo, globalConfig);
                 insideSvgHtml.push(...insideSvgItem);
             }
 
@@ -61,11 +65,6 @@ export default function Node(props) {
                 props.onNodeMouseDown(event);
             }}
         >
-            <div className='node-inside-svg'>
-                <svg>
-                    {insideSvgHtml}
-                </svg>
-            </div>
 
             <div 
                 className='node-content' 
@@ -77,6 +76,11 @@ export default function Node(props) {
                 {itemHtml}
             </div>
 
+            <div className='node-inside-svg'>
+                <svg>
+                    {insideSvgHtml}
+                </svg>
+            </div>
 
             <div className='node-pointer node-inputs'>
                 <div 
@@ -116,7 +120,8 @@ export default function Node(props) {
 /**
  * 
  */
-function createInsideSvgItem(pathInfo) {
+function createInsideSvgItem(pathInfo, globalConfig) {
+
     if(!pathInfo || isEmptyArray(pathInfo.pathPoints)) return([]);
 
     const fromNode = pathInfo.fromNode;
@@ -156,7 +161,12 @@ function createInsideSvgItem(pathInfo) {
             pathVal += ` L${point.x} ${point.y}`
         })
         
-        insideSvgItem.push(<path key={insideSvgItem.length} d={pathVal} stroke="green"/>);
+        insideSvgItem.push(<path 
+            key={insideSvgItem.length} 
+            d={pathVal} 
+            stroke={globalConfig.lineColor} 
+            opacity={globalConfig.opacity}
+        />);
     }
 
     const trianglePoints = nodePointerTriangle(pathInfo.edge, itemPoint, itemPointerSize);
