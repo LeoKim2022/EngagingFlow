@@ -8,7 +8,7 @@ export default function FlowScrollBar(props) {
 
     const nodeData          = props.nodeData;
     const containerPosition = props.containerPosition;
-    const boxSize           = props.boxSize;
+    const boxRect           = props.boxRect;
     const editorScaleLev    = props.editorScaleLev;
     const scrollType        = props.type;
 
@@ -23,7 +23,7 @@ export default function FlowScrollBar(props) {
     });
 
     useEffect(() => {
-        if(boxSize.width > 0 && boxSize.height > 0) {
+        if(boxRect.width > 0 && boxRect.height > 0) {
             let minAttrName;
             let maxAttrName;
             let edge;
@@ -62,15 +62,15 @@ export default function FlowScrollBar(props) {
             let minPos = (containerPosition[minAttrName] * scaleOrigin) + (minNodeLoc * scaleOrigin);
             let maxPos = (containerPosition[minAttrName] * scaleOrigin) + (maxNodeLoc * scaleOrigin);
             
-            if(minPos < 0 || boxSize[edge] < maxPos) {
+            if(minPos < 0 || boxRect[edge] < maxPos) {
                 const trackRect = {
                     from: 0,
-                    end : boxSize[edge],
+                    end : boxRect[edge],
                 }
     
                 const barRect = {
                     from: 0,
-                    end : boxSize[edge],
+                    end : boxRect[edge],
                 }
     
                 const copyStatus = JSON.parse(JSON.stringify(scrollBarStatus));
@@ -82,14 +82,14 @@ export default function FlowScrollBar(props) {
                     barRect.end += minPos;
                 } 
     
-                if(maxPos > boxSize[edge]) {
-                    trackRect.end += maxPos - boxSize[edge];
-                    barRect.end -= (maxPos - boxSize[edge]);
+                if(maxPos > boxRect[edge]) {
+                    trackRect.end += maxPos - boxRect[edge];
+                    barRect.end -= (maxPos - boxRect[edge]);
                 }
 
                 
-                copyStatus[edge] = (barRect.end - barRect.from) / trackRect.end * boxSize[edge];
-                copyStatus[minAttrName] = barRect.from / trackRect.end * boxSize[edge];
+                copyStatus[edge] = (barRect.end - barRect.from) / trackRect.end * boxRect[edge];
+                copyStatus[minAttrName] = barRect.from / trackRect.end * boxRect[edge];
 
                 if(!compareObjectValue(copyStatus, scrollBarStatus)) {
                     setScrollBarStatus(copyStatus);
@@ -100,7 +100,7 @@ export default function FlowScrollBar(props) {
                 setScrollDisplay(false);
             }
         }
-    }, [nodeData, containerPosition, boxSize, editorScaleLev, scrollType, scrollDisplay, scrollBarStatus]);
+    }, [nodeData, containerPosition, boxRect, editorScaleLev, scrollType, scrollDisplay, scrollBarStatus]);
     
     return (
         <div 

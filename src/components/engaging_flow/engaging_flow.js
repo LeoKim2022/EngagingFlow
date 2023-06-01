@@ -4,64 +4,23 @@ import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
 import {connectPath} from '../function/connect_path'
 import {nodeData} from '../common/node_data'
+import {getParentElement, getGridPosition} from './flow_function'
+
+import {GlobalConfigProvider} from '../context_global_config'
 
 import './engaging_flow.css';
 import Node from './node'
 import Connection from './connection'
 import FlowScrollBar from './flow_scrollbar'
-import * as PointerHandle  from './node_pointer_handle'
+import * as PointerHandle from './node_pointer_handle'
+import ConfigPanel from '../config_panel';
 
-import {GlobalConfigProvider} from '../context_global_config'
-import ControlPanel from '../control_panel';
-
-/**
- * 
- */
-function getFlowNodeDiv(element) {
-    let parent = element.parentNode;
-  
-    while (parent) {
-        if (parent.classList.contains('flow-node')) {
-            return parent;
-        }
-        parent = parent.parentNode;
-    }
-  
-    return null;
-}
-
-
-
-/**
- * 
- */
-function getGridPosition(editorScale, containerPosition, parentSizeWithGap) {
-    const editorScaleOrigin = editorScale / DEFINITION.FLOW_SCALE_LEVEL_RATE;
-
-    // FLOW_GRID_SIZE 단위에서 flow container가 이동한 만큼 gird도 움직여야 하며, 그 거리는 scale 배율에 비례합니다.
-    let gridTop = (DEFINITION.FLOW_GRID_SIZE - (containerPosition.top % DEFINITION.FLOW_GRID_SIZE)) * editorScaleOrigin * -1;
-
-    // 양옆으로 항상 드래그가 가능한 영역이 추가로 있어야 합니다.
-    gridTop += (parentSizeWithGap.height * editorScaleOrigin * -1 - editorScaleOrigin);
-
-    let gridLeft = (DEFINITION.FLOW_GRID_SIZE - (containerPosition.left % DEFINITION.FLOW_GRID_SIZE)) * editorScaleOrigin * -1;
-    gridLeft += (parentSizeWithGap.width * editorScaleOrigin * -1 - editorScaleOrigin);
-
-    return({
-        top : gridTop,
-        left: gridLeft,
-    })
-}
-
-
+import ControlBox from './control/control_box';
 
 export default function EngagingFlow(props) {
 
-    const NodePointerSize = DEFINITION.NodePointerSize;
-    const ItemPointerSize = DEFINITION.ItemPointerSize;
-
-    const parentWidthWithGap  = props.boxSize.width - (props.boxSize.width % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
-    const parentHeightWithGap = props.boxSize.height - (props.boxSize.height % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
+    const parentWidthWithGap  = props.boxRect.width - (props.boxRect.width % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
+    const parentHeightWithGap = props.boxRect.height - (props.boxRect.height % DEFINITION.FLOW_GRID_SIZE) + DEFINITION.FLOW_GRID_SIZE;
 
     /**********************************************************************/
     // set useState
@@ -70,14 +29,22 @@ export default function EngagingFlow(props) {
     const [flowDragMode, setFlowDragMode] = useState(DEFINITION.FlowActionMode.none);
 
     const [targetDragInfo, setTargetDragInfo] = useState({top: 0, left: 0});
-    const [editorScaleLev, setEditorScaleLev] = useState(13);
+    const [editorScaleLev, setEditorScaleLev] = useState(11);
 
     const [containerPosition, setContainerPosition] = useState({ top: 0, left: 0});
     const [gridPosition, setGridPosition] = useState({ top: 0, left: 0});
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const [flowData, setFlowData] = useState([]);
+    const [flowData, setFlowData] = useState(nodeData);
+
+    const [outPointerDrag, setOutPointerDrag] = useState(null);
+
+    const [mouseClientX, setMouseClientX] = useState(null);
+    const [mouseClientY, setMouseClientY] = useState(null);
+
+    const [highlightNode, setHighlightNode] = useState(null);
+    const [highlightItem, setHighlightItem] = useState(null);
 
     /**********************************************************************/
     // event handler
@@ -88,13 +55,21 @@ export default function EngagingFlow(props) {
      * @param event 
      */
     function handleFlowMouseDown(event) {
-        console.log("🚀 ~ event.buttons:", event.buttons);
 
         switch(event.buttons) {
-
             
             case DEFINITION.MouseButtons.left: {
-                if(spaceKeyHold) initFlowDragMode(event);
+                if(spaceKeyHold) {
+                    initFlowDragMode(event);
+                } else {
+                    setFlowDragMode(DEFINITION.FlowActionMode.rect);
+                    setTargetDragInfo({
+                        clientX: event.clientX,
+                        clientY: event.clientY,
+                    });
+
+                }
+
                 break;
             }
         
@@ -163,9 +138,10 @@ export default function EngagingFlow(props) {
                 if(spaceKeyHold) {
                     initFlowDragMode(event);
                 } else {
-                    let targetNode = getFlowNodeDiv(event.target);
+                    let targetNode = getParentElement(event.target, 'flow-node');
                     if(!targetNode) {
                         setFlowDragMode(DEFINITION.FlowActionMode.none);
+                        return;
                     } else {
                         setFlowDragMode(DEFINITION.FlowActionMode.node);
                     }
@@ -181,13 +157,14 @@ export default function EngagingFlow(props) {
                         clientY: event.clientY,
                         targetTop : findItem.top,
                         targetLeft: findItem.left,
-                    });                    
+                    });
+
+
                 }
                 break;
             }
         
             case DEFINITION.MouseButtons.right: {
-                console.log("🚀 ~ DEFINITION.MouseButtons.right");
                 break;
             }
         
@@ -206,6 +183,16 @@ export default function EngagingFlow(props) {
     
     /**
      * 
+     * @param event 
+     */    
+    function handleMouseUpOnNode(event) {
+        //
+    }
+
+
+    
+    /**
+     * 
      */    
     function handleMouseEnter() {
         document.getElementById(DEFINITION.FLOW_EDITOR_ID).focus();
@@ -215,8 +202,18 @@ export default function EngagingFlow(props) {
     /**
      * 
      */    
-    function handleMouseUp() {
+    function handleMouseUp(event) {
+        // TODO: connectionDraw - handleMouseUp
+
+        // console.log("🚀 ~ event:", event);        
+        // console.log("🚀 ~ finishDrag:", flowDragMode);
+
+        // if() {
+
+        // }
+
         finishDrag();
+        
     };
 
 
@@ -255,7 +252,7 @@ export default function EngagingFlow(props) {
                 ) {
                     findItem.top  = newTop;
                     findItem.left = newLeft;
-    
+     
                     setFlowData(copyFlowData);
                 }
             }
@@ -269,10 +266,29 @@ export default function EngagingFlow(props) {
                 top : newTop,
                 left: newLeft,
             });
-        } else if(flowDragMode === DEFINITION.FlowActionMode.pointer) {
-            // console.log("🚀 ~ event:", event);
-            // TODO: pointer에서 마우스 down이 발생한후 마우스가 움직일때
+        } else if(flowDragMode === DEFINITION.FlowActionMode.pointer && outPointerDrag) {
+            // const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+
+            // const toPointer = {
+            //     x: (event.clientX - props.boxRect.left) / scaleOrigin - containerPosition.left,
+            //     y: (event.clientY - props.boxRect.top) / scaleOrigin - containerPosition.top,
+            // }            
+
+            // const pathInfoParam = Object.assign({}, outPointerDrag, { 
+            //     toPointer: toPointer, 
+            //     isTargetPointerEmpty: true,
+            //     isFromNodePointer: true,
+            // });
+            // const pathInfo = connectPath(pathInfoParam);
+
+            // const copyOutPointerDrag = JSON.parse(JSON.stringify(outPointerDrag));
+            // copyOutPointerDrag.pathInfo = pathInfo;
+            // setOutPointerDrag(copyOutPointerDrag);
+        } else if(flowDragMode === DEFINITION.FlowActionMode.rect) {
+            setMouseClientX(event.clientX);
+            setMouseClientY(event.clientY);
         }
+
     };
 
 
@@ -346,6 +362,9 @@ export default function EngagingFlow(props) {
     function finishDrag() {
         setFlowDragMode(DEFINITION.FlowActionMode.none);
         setDragTargetNode(null);
+        setOutPointerDrag(null);
+        setMouseClientX(null);
+        setMouseClientY(null);
     }
 
 
@@ -381,6 +400,40 @@ export default function EngagingFlow(props) {
     }, [editorScaleLev, containerPosition, parentWidthWithGap, parentHeightWithGap]);
 
 
+
+    /**
+     * 
+     * @param  
+     */
+    function updateHighlightNode(event, element) {
+
+        if(event.type === 'mouseenter') {
+            const nodeId = element.getAttribute("id");
+            if(nodeId) setHighlightNode(nodeId);
+        } else {
+            setHighlightNode(null);
+        }
+
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
+    function updateHighlightItem(event, element) {
+
+        if(event.type === 'mouseenter') {
+            const itemId = element.getAttribute("id");
+            if(itemId) setHighlightItem(itemId);
+        } else {
+            setHighlightItem(null);
+        }
+
+    }
+
+
     /**********************************************************************/
     // set useEffect
     /**********************************************************************/ 
@@ -414,17 +467,17 @@ export default function EngagingFlow(props) {
                 node={node}
                 childData={flowData}
                 containerPosition={containerPosition}
-                nodePointerSize={NodePointerSize}
-                itemPointerSize={ItemPointerSize}
 
                 onNodeMouseDown={handleMouseDownOnNode}
+                onNodeMouseUp={handleMouseUpOnNode}
 
-                onOutputPointerMouseDown={(event) => {
-                    PointerHandle.handleMouseDownOutput(event, setFlowDragMode);
-                }}
+                onOutputPointerMouseDown={(event) => { PointerHandle.handleMouseDownOutput(event, flowData, containerPosition, setFlowDragMode, setOutPointerDrag); }}
 
                 onInputPointerMouseEnter={PointerHandle.handleMouseEnterInput}
                 onInputPointerMouseLeave={PointerHandle.handleMouseLeaveInput}
+
+                onUpdateHighlightNode={updateHighlightNode}
+                onUpdateHighlightItem={updateHighlightItem}
             />
         )
     })
@@ -442,14 +495,14 @@ export default function EngagingFlow(props) {
                             fromNode: node,
                             fromItem: nodeItem,
                             containerPosition: containerPosition,
-                            nodePointerSize: NodePointerSize,
-                            itemPointerSize: ItemPointerSize,
                         });
 
                         if(pathInfo) {
                             connectionHtml.push(
                                 <Connection 
                                     key={`${node.id}.${nodeItem.id}`} 
+                                    nodeId={node.id}
+                                    nodeItemId={nodeItem.id}
                                     fromNode={node} 
                                     fromItem={nodeItem} 
                                     pathInfo={pathInfo} 
@@ -462,28 +515,52 @@ export default function EngagingFlow(props) {
             });
         }
 
-        // if(node.action) {
-        //     // TODO: node 에서 node로 가는 connection
-        //     const targetNode = flowData.find((element) => { return(element.id === node.action.id) });
-        //     if(targetNode) {
-        //         const pathInfo = connectPath({
-        //             toNode: targetNode,
-        //             fromNode: node,
-        //             fromItem: {
-        //                 top: 0,
-        //                 left: 0,
-        //                 width: DEFINITION.ItemPointerSize.width,
-        //                 height: DEFINITION.ItemPointerSize.height,
-        //             },
-        //             containerPosition: containerPosition,
-        //             nodePointerSize: NodePointerSize,
-        //             itemPointerSize: ItemPointerSize,
-        //         });
+        if(node.action) {
+            // TODO: node 에서 node로 가는 connection
+            const targetNode = flowData.find((element) => { return(element.id === node.action.id) });
+            if(targetNode) {
+                const pathInfo = connectPath({
+                    toNode: targetNode,
+                    fromNode: node,
+                    fromItem: {
+                        top: node.height / 2 - DEFINITION.NodePointerSize.height / 2,
+                        left: node.width - (DEFINITION.NodePointerSize.width),
+                        width: DEFINITION.NodePointerSize.width,
+                        height: DEFINITION.NodePointerSize.height,
+                    },
+                    isFromNodePointer: true,
+                    containerPosition: containerPosition,
+                });
 
-        //         //
-        //     }
-        // }
+                connectionHtml.push(
+                    <Connection 
+                        key={`${node.id}`} 
+                        nodeId={node.id}
+                        fromNode={node} 
+                        pathInfo={pathInfo} 
+                    />
+                );
+            }
+        }
     })
+
+    let containerDragClass;
+    switch(flowDragMode) {
+        case DEFINITION.FlowActionMode.node: {
+            containerDragClass = 'node-dragging';
+            break;
+        }
+    
+        case DEFINITION.FlowActionMode.pointer: {
+            containerDragClass = 'pointer-dragging';
+            break;
+        }
+    
+        default: {
+            containerDragClass = '';
+            break;
+        }
+    }
 
     return(
         <GlobalConfigProvider>
@@ -523,29 +600,43 @@ export default function EngagingFlow(props) {
                     }}
                 >
                     <div 
-                        className={`flow-container ${flowDragMode === DEFINITION.FlowActionMode.node ? 'node-dragging': ''}`} 
+                        className={`flow-container ${containerDragClass}`} 
                         style={{
                             top: containerPosition.top, 
                             left: containerPosition.left
                         }} 
                     >
+                        {nodeHtml}
+
                         <svg className='node-connects'>
                             {connectionHtml}
-                            {/* TODO: 사용자가 직접 드로우 하는 connection 전용 */}
                             <Connection 
-                                
+                                pathInfo={outPointerDrag?.pathInfo}
                             />
                         </svg>
 
-                        {nodeHtml}
                     </div>
+
+                    <ControlBox 
+                        targetDragInfo={targetDragInfo}
+                        mouseClientX={mouseClientX}
+                        mouseClientY={mouseClientY}
+                        nodeData={flowData} 
+                        editorScaleLev={editorScaleLev}
+                        boxRect={props.boxRect}
+                        containerPosition={containerPosition}
+                        flowDragMode={flowDragMode}
+                        highlightNode={highlightNode}
+                        highlightItem={highlightItem}
+                    />
                 </div>
+
 
                 <FlowScrollBar 
                     nodeData={flowData} 
                     type={DEFINITION.ScrollBarType.horizontal}
                     containerPosition={containerPosition}
-                    boxSize={props.boxSize}
+                    boxRect={props.boxRect}
                     editorScaleLev={editorScaleLev}
                 />
 
@@ -553,11 +644,11 @@ export default function EngagingFlow(props) {
                     nodeData={flowData} 
                     type={DEFINITION.ScrollBarType.vertical}
                     containerPosition={containerPosition}
-                    boxSize={props.boxSize}
+                    boxRect={props.boxRect}
                     editorScaleLev={editorScaleLev}
                 />
 
-                <div 
+                {/* <div 
                     style={{
                         position: 'absolute',
                         width: 'fit-content',
@@ -568,6 +659,7 @@ export default function EngagingFlow(props) {
                         borderRadius: 10,
                         backgroundColor: 'gray',
                         color: 'white',
+                        cursor: 'pointer',
                     }}
 
                     onClick={() => {
@@ -575,9 +667,28 @@ export default function EngagingFlow(props) {
                     }}
                 >
                     <span>Load Data</span>
-                </div>
+                </div> */}
             </div>
-            <ControlPanel />
+            <ConfigPanel />
+
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    padding: '10px 10px 10px 0px',
+                    backgroundColor: 'lightgray',
+                    borderTopLeftRadius: 10,
+                    textAlign: 'left',
+                }}
+            >
+                <div style={{marginLeft: 20}}><span>Update log</span></div>
+                <ul>
+                    <li>drawing rect by drag on flow-editor</li>
+                    <li>'Flow Config' with useContext()</li>
+                </ul>
+            </div>
+
         </GlobalConfigProvider>
     )
 }

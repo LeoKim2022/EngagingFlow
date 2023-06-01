@@ -1,10 +1,13 @@
 import React, { useRef,  } from 'react';
 
+import {DEFINITION} from './definition'
+import {getParentElement} from './flow_function'
+
 import ItemPanel from './item_panel'
 
 // import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
-import {nodePointerPentagon, nodePointerTriangle} from '../function/node_pointer_polygon'
+import {nodePointerPentagon, nodePointerTriangle} from './node_pointer_polygon'
 import {connectPath} from '../function/connect_path'
 
 import {useGlobalConfig} from '../context_global_config'
@@ -13,7 +16,7 @@ export default function Node(props) {
 
     const [globalConfig, ] = useGlobalConfig();
 
-    const svgPolygon = nodePointerPentagon(props.nodePointerSize);
+    const svgPolygon = nodePointerPentagon();
     const childData = props.childData;
     const node = props.node;
 
@@ -24,6 +27,9 @@ export default function Node(props) {
         itemHtml = node.items.map((item, index) => {
 
             let pathInfo = null;
+
+            if(!item.id) return(null);
+
             if(item.action !== undefined) {
                 const targetNode = childData.find((element) => { return(element.id === item.action.id) });
 
@@ -32,8 +38,6 @@ export default function Node(props) {
                     fromNode: node,
                     fromItem: item,
                     containerPosition: props.containerPosition,
-                    nodePointerSize: props.nodePointerSize,
-                    itemPointerSize: props.itemPointerSize,
                 });
 
                 const insideSvgItem = createInsideSvgItem(pathInfo, globalConfig);
@@ -44,6 +48,7 @@ export default function Node(props) {
                 <ItemPanel 
                     key={index} 
                     item={item}
+                    onUpdateHighlightItem={props.onUpdateHighlightItem}
                 />
             );
         })
@@ -58,11 +63,42 @@ export default function Node(props) {
             id={node.id}
             style={{
                 top: node.top, 
-                left: node.left
+                left: node.left,
+                width: node.width, 
+                height: node.height
             }}
+
             onMouseDown={(event) => {
                 event.stopPropagation();
                 props.onNodeMouseDown(event);
+            }}
+
+            onMouseUp={(event) => {
+                props.onNodeMouseUp(event);
+            }}
+
+            onMouseEnter={(event) => {
+                let highlightTarget = null;
+                if(event.target.classList.contains('flow-node')) {
+                    highlightTarget = event.target;
+                } else if(event.target.classList.contains('node-content')) {
+                    const flowNode = getParentElement(event.target, 'flow-node');
+                    highlightTarget = flowNode;
+                }
+
+                if(highlightTarget) props.onUpdateHighlightNode(event, highlightTarget);
+            }}
+
+            onMouseLeave={(event) => {
+                let highlightTarget = null;
+                if(event.target.classList.contains('flow-node')) {
+                    highlightTarget = event.target;
+                } else if(event.target.classList.contains('node-content')) {
+                    const flowNode = getParentElement(event.target, 'flow-node');
+                    highlightTarget = flowNode;
+                }
+
+                if(highlightTarget) props.onUpdateHighlightNode(event, highlightTarget);
             }}
         >
 
@@ -89,8 +125,12 @@ export default function Node(props) {
 
                     onMouseEnter={props.onInputPointerMouseEnter}
                     onMouseLeave={props.onInputPointerMouseLeave}
+
+                    onMouseDown={(event) => {
+                        event.stopPropagation();
+                    }}
                 >
-                    <svg width={props.nodePointerSize.width} height={props.nodePointerSize.height}>
+                    <svg width={DEFINITION.NodePointerSize.width} height={DEFINITION.NodePointerSize.height}>
                         <polygon points={svgPolygon} />
                     </svg>
                 </div>
@@ -105,7 +145,7 @@ export default function Node(props) {
                         props.onOutputPointerMouseDown(event);
                     }}
                 >
-                    <svg width={props.nodePointerSize.width} height={props.nodePointerSize.height}>
+                    <svg width={DEFINITION.NodePointerSize.width} height={DEFINITION.NodePointerSize.height}>
                         <polygon points={svgPolygon} />
                     </svg>
                 </div>
@@ -113,7 +153,7 @@ export default function Node(props) {
 
         </div>
     )
-}
+}                        
 
 
 
@@ -126,7 +166,7 @@ function createInsideSvgItem(pathInfo, globalConfig) {
 
     const fromNode = pathInfo.fromNode;
     const fromPoint = pathInfo.fromPoint;
-    const itemPointerSize = pathInfo.itemPointerSize;    
+    // const itemPointerSize = pathInfo.itemPointerSize;
     
     let insidePoints  = [];
     let insideSvgItem = [];
@@ -149,11 +189,11 @@ function createInsideSvgItem(pathInfo, globalConfig) {
     let pathVal;
     
     if(pathInfo.edge === 'top') {
-        pathVal = `M${itemPoint.x} ${itemPoint.y - 1}`;
+        pathVal = `M${itemPoint.x} ${itemPoint.y}`;
     } else if(pathInfo.edge === 'bottom') {
-        pathVal = `M${itemPoint.x} ${itemPoint.y + 1}`;
+        pathVal = `M${itemPoint.x} ${itemPoint.y}`;
     } else {
-        pathVal = `M${itemPoint.x + 1} ${itemPoint.y}`;
+        pathVal = `M${itemPoint.x} ${itemPoint.y}`;
     }
 
     if(insidePoints.length) {        
@@ -169,7 +209,7 @@ function createInsideSvgItem(pathInfo, globalConfig) {
         />);
     }
 
-    const trianglePoints = nodePointerTriangle(pathInfo.edge, itemPoint, itemPointerSize);
+    const trianglePoints = nodePointerTriangle(pathInfo.edge, itemPoint);
     insideSvgItem.push(<polygon key={insideSvgItem.length} points={trianglePoints} />);
 
     return(insideSvgItem);

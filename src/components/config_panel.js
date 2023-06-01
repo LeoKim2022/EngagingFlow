@@ -1,8 +1,8 @@
-import './control_panel.css'
+import './config_panel.css'
 
 import {useGlobalConfig} from './context_global_config'
 
-export default function ControlPanel(props) {
+export default function ConfigPanel(props) {
 
     const [globalConfig, setGlobalConfig] = useGlobalConfig();
 

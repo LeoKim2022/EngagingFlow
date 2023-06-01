@@ -1,3 +1,7 @@
+:root {
+    --node-border: 2px;
+}
+
 .engaging-flow-box {
     overflow: hidden;
     border: 1px solid gray;
@@ -36,11 +40,12 @@
 }
 
 .flow-node {
+    border: var(--node-border) solid gray;
     position: absolute;
     width: fit-content;
     background-color: white;
     user-select: none;
-    line-height: 0px;
+    line-height: 0px;    
 }
 
 .flow-node div {
@@ -48,7 +53,8 @@
 }
 
 .node-content {
-    border: 2px solid gray;
+    position: absolute;
+    overflow: hidden;    
 }
 
 .item-panel {
@@ -59,9 +65,9 @@
 .engaging-flow>.flow-container {
     position: absolute;
     overflow: visible;
-    width: 1px;
-    height: 1px;
-    background-color: blueviolet;
+    width: 2px;
+    height: 2px;
+    background-color: red;
 }
 
 .node-pointer {
@@ -90,6 +96,7 @@
     left: 0px;
     width: 100%;
     height: 100%;
+    pointer-events: none;
 }
 
 .node-inside-svg>svg {
@@ -101,13 +108,14 @@
 .node-inside-svg>svg>path {
     fill: none;
     stroke-width: 1.5px;
+    pointer-events: none;
 }
 
 .node-inside-svg>svg>polygon {
     fill: gray;
 }
 
-.flow-container:not(.node-dragging) .node-output:hover svg,
+.flow-container:not(.node-dragging):not(.pointer-dragging) .node-output:hover svg,
 .flow-container:not(.node-dragging) .node-input:hover svg {
     stroke: red;
     cursor: pointer;
@@ -115,12 +123,13 @@
 
 .node-connects {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: var(--node-border);
+    left: var(--node-border);
     width: 100px;
     height: 100px;
     line-height: 0px;
     overflow: visible;
+    pointer-events: none;
 }
 
 /**********************************************************************

@@ -10,12 +10,16 @@ const DEFINITION = Object.freeze({
     FLOW_SCALE_LEVEL_RATE : 10,
 
     FLOW_GRID_SIZE : 40,
+
+    // 현재 구조상 이론적으로 7번을 넘을수가 없다.
+    MAXIMUM_PATH_POINTER_COUNT: 7,
     
     FlowActionMode : Object.freeze({
         none:    0,
         flow:    100,
         node:    200,
         pointer: 300,
+        rect:    400,
     }),
     
     NodePointerSize : Object.freeze({

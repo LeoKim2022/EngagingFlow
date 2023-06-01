@@ -11,8 +11,8 @@ const nodeData = [
         items: [
             {
                 id: "a1",
-                top: 20,
-                left: 20,
+                top: -5,
+                left: -5,
                 width: 50,
                 height: 30,
             },
@@ -27,9 +27,9 @@ const nodeData = [
                 }
             },
         ],
-        action: {
-            id: "bbb",
-        }
+        // action: {
+        //     id: "bbb",
+        // }
     },
     {
         id: 'bbb',
@@ -139,7 +139,10 @@ const nodeData = [
                 width: 13,
                 height: 13,
             },
-        ]
+        ],
+        // action: {
+        //     id: "bbb",
+        // }
     },
     {
         id: 'fff',

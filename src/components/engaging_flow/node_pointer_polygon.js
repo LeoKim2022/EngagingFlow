@@ -1,6 +1,8 @@
-function nodePointerPentagon(params) {
-    const width   = params.width
-    const height  = params.height
+import {DEFINITION} from './definition'
+
+function nodePointerPentagon() {
+    const width   = DEFINITION.NodePointerSize.width
+    const height  = DEFINITION.NodePointerSize.height
     const rectPos = 0.6
     
     return(`
@@ -14,12 +16,12 @@ function nodePointerPentagon(params) {
 
 
 
-function nodePointerTriangle(edge, point, itemPointerSize) {
+function nodePointerTriangle(edge, point) {
 
     let pointsVal;
 
-    let width  = itemPointerSize.width;
-    let height = itemPointerSize.height;
+    let width  = DEFINITION.ItemPointerSize.width;
+    let height = DEFINITION.ItemPointerSize.height;
 
     switch(edge) {
         case 'top': {
@@ -43,8 +45,8 @@ function nodePointerTriangle(edge, point, itemPointerSize) {
         }
     
         default: {
-            width  = itemPointerSize.height;
-            height = itemPointerSize.width;
+            width  = DEFINITION.ItemPointerSize.height;
+            height = DEFINITION.ItemPointerSize.width;
 
             pointsVal = `
                 ${point.x}, ${point.y - height/2} 

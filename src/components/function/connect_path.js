@@ -3,15 +3,15 @@ import {DEFINITION} from '../engaging_flow/definition'
 const breakPoint = 1 / 2;
 
 function connectPath(params) {
-
+    
     const fromItem = params.fromItem;
     addRightBottom(fromItem);
 
     const fromNode = params.fromNode;
     addRightBottom(fromNode);
 
-    const toNode = params.toNode;
-    addRightBottom(toNode);
+    let toNode = params.toNode;
+    if(toNode) addRightBottom(toNode);
 
     // 아이템 포인터가 생기는 edge
     const nearEdgeResult = findStartEdge(params);
@@ -39,9 +39,10 @@ function connectPath(params) {
         fromPoint: nearEdgeResult.fromPoint,
         toPoint: nearEdgeResult.toPoint,
 
+        isFromNodePointer: params.isFromNodePointer,
+        isTargetPointerEmpty: params.isTargetPointerEmpty,
+
         pathPoints: pathPoints,
-        itemPointerSize: params.itemPointerSize,
-        nodePointerSize: params.nodePointerSize,
     });
     
 }
@@ -74,26 +75,19 @@ function makePathPoints(nearEdgeResult, params) {
         wayPoint: nearEdgeResult.fromPoint,
         toNode: params.toNode,
         toPoint: nearEdgeResult.toPoint,
-        itemPointerSize: params.itemPointerSize,
-        nodePointerSize: params.nodePointerSize,
+        isTargetPointerEmpty: params.isTargetPointerEmpty,
     }));
 
     const pointers = [];
     searchPathParam.pointers = pointers;
 
-    switch(edge) {
-        case 'top':
-        case 'bottom': {
-            searchPathParam.axis = "y";
-            break;
-        }
-    
-        default: {
-            searchPathParam.axis = "x";
-            break;
-        }
+    if(params.isFromNodePointer === true) {
+        searchPathParam.axis = "x";
+    } else {
+        if(edge === 'right') searchPathParam.axis = "x";
+            else searchPathParam.axis = "y";
     }
-
+        
     searchPath(searchPathParam);
     return(pointers);
 }
@@ -108,10 +102,13 @@ function findStartEdge(params) {
 
     const fromItem = params.fromItem;
     const fromNode = params.fromNode;
-    const toNode = params.toNode;
+    const toNode   = params.toNode;
+    // const isFromNodePointer = params.isFromNodePointer;
 
-    const nodePointerSize = params.nodePointerSize;
-    const itemPointerSize = params.itemPointerSize;
+    let toPointer = params.toPointer;
+
+    const nodePointerSize = DEFINITION.NodePointerSize;
+    const itemPointerSize = DEFINITION.ItemPointerSize;
 
     const edgeResult = {
         edge: '',
@@ -131,31 +128,36 @@ function findStartEdge(params) {
         }
     }
 
-    const toNodePointer = {
-        x: toNode.left - (nodePointerSize.width / 2) + DEFINITION.NODE_INPUT_POINTER_GAP_X,
-        y: toNode.top + toNode.height / 2,
+    if(toPointer === undefined) {
+        toPointer = {
+            x: toNode.left - (nodePointerSize.width / 2) + DEFINITION.NODE_INPUT_POINTER_GAP_X,
+            y: toNode.top + toNode.height / 2,
+        }
     }
 
     // 아이템에서 fromPoint가 시작할 위치 판단
     if(
-        itemRectFromContainer.top <= toNodePointer.y 
-        && itemRectFromContainer.bottom >= toNodePointer.y
-        && itemRectFromContainer.left <= toNodePointer.x
-        && itemRectFromContainer.right >= toNodePointer.x
+        itemRectFromContainer.top <= toPointer.y 
+        && itemRectFromContainer.bottom >= toPointer.y
+        && itemRectFromContainer.left <= toPointer.x
+        && itemRectFromContainer.right >= toPointer.x
     ) {
         // Node의 input point가 fromItem의 내부에 있을 경우 그리지 않으므로
     } else {
         if (
-            fromNode.top <= toNodePointer.y 
-            && fromNode.bottom >= toNodePointer.y
-            && fromNode.left <= toNodePointer.x
-            && fromNode.right >= toNodePointer.x
+            fromNode.top <= toPointer.y 
+            && fromNode.bottom >= toPointer.y
+            && fromNode.left <= toPointer.x
+            && fromNode.right >= toPointer.x
         ) {
             
-            if((itemRectFromContainer.right + itemPointerSize.width) < toNodePointer.x) {
+            if(
+                ((itemRectFromContainer.right + itemPointerSize.width) < toPointer.x) ||
+                params.isFromNodePointer === true
+            ) {
                 edgeResult.edge = 'right';
             } else {
-                if(itemRectFromContainer.center.y < toNodePointer.y) {
+                if(itemRectFromContainer.center.y < toPointer.y) {
                     edgeResult.edge = 'bottom';
                 } else {
                     edgeResult.edge = 'top';
@@ -164,15 +166,16 @@ function findStartEdge(params) {
             
             edgeResult.isInsideTargetPointer = true;
         } else {
-            if(itemRectFromContainer.right + itemPointerSize.width > toNodePointer.x) {
+            if(itemRectFromContainer.right + itemPointerSize.width > toPointer.x) {
                 if(
-                    fromNode.top <= toNodePointer.y 
-                    && fromNode.bottom >= toNodePointer.y
-                    && itemRectFromContainer.center.x < toNodePointer.x
+                    (fromNode.top <= toPointer.y 
+                    && fromNode.bottom >= toPointer.y
+                    && itemRectFromContainer.center.x < toPointer.x) ||
+                    params.isFromNodePointer === true
                 ) {
                     edgeResult.edge = 'right';
                 } else {
-                    if(itemRectFromContainer.center.y < toNodePointer.y) {
+                    if(itemRectFromContainer.center.y < toPointer.y) {
                         edgeResult.edge = 'bottom';
                     } else {
                         edgeResult.edge = 'top';
@@ -209,16 +212,20 @@ function findStartEdge(params) {
             }
         
             default: {
+                // let fromPointX;
+                // if(isFromNodePointer) fromPointX = itemRectFromContainer.right + nodePointerSize.width / 2;
+                //     else fromPointX = itemRectFromContainer.right + itemPointerSize.width / 2;
+
                 edgeResult.fromPoint = {
-                    x: itemRectFromContainer.right - DEFINITION.ITEM_POINTER_GAP_X,
+                    x: itemRectFromContainer.right,
                     y: itemRectFromContainer.center.y,
                 }
-                
+                                
                 break;
             }
         }
 
-        edgeResult.toPoint = toNodePointer;
+        edgeResult.toPoint = toPointer;
         return(edgeResult);
     } else {
         return(null);
@@ -248,41 +255,53 @@ function isOutPoint(firstPoint, fromNode) {
 
 function searchPath(searchPathParam) {
 
-    const edge            = searchPathParam.edge;
-    const axis            = searchPathParam.axis;
-    const fromNode        = searchPathParam.fromNode;
-    const fromPoint       = searchPathParam.fromPoint;
-    const wayPoint        = searchPathParam.wayPoint;
-    // const toNode          = searchPathParam.toNode;
-    const toPoint         = searchPathParam.toPoint;
-    const itemPointerSize = searchPathParam.itemPointerSize;
-    const nodePointerSize = searchPathParam.nodePointerSize;
-    const pointers        = searchPathParam.pointers;
-    
-    if(wayPoint.x !== toPoint.x || wayPoint.y !== toPoint.y) {
+    const edge                 = searchPathParam.edge;
+    const axis                 = searchPathParam.axis;
+    const fromNode             = searchPathParam.fromNode;
+    const fromPoint            = searchPathParam.fromPoint;
+    const wayPoint             = searchPathParam.wayPoint;
+    const toPoint              = searchPathParam.toPoint;
+    const pointers             = searchPathParam.pointers;
+    const isTargetPointerEmpty = searchPathParam.isTargetPointerEmpty;
+
+    const itemPointerSize = DEFINITION.ItemPointerSize;
+    const nodePointerSize = DEFINITION.NodePointerSize;
+
+    if(pointers.length > DEFINITION.MAXIMUM_PATH_POINTER_COUNT) return;
+
+    if(Math.round(wayPoint.x) !== Math.round(toPoint.x) || Math.round(wayPoint.y) !== Math.round(toPoint.y)) {
 
         let newPoint = {};
 
-        if(axis === "x") {            
+        if(axis === "x") {
             newPoint.y = wayPoint.y;
             const xDistance = toPoint.x - wayPoint.x;
-            if(xDistance >= 0) {
-                newPoint.direction = "right";
+            
+            if(xDistance >= 0 || pointers.length === 0) {
+                newPoint.direction = 'right';
             } else {
-                newPoint.direction = "left";
+                newPoint.direction = 'left';
             }
             
-            if(wayPoint.x > toPoint.x) {
-                newPoint.x = wayPoint.x + xDistance - nodePointerSize.width;
-            } else {
-                if(wayPoint.y === toPoint.y) {
-                    // 시작점과 동일한 y 위치에서 오른쪽으로 타깃 포인트가 있으면
-                    newPoint.x = wayPoint.x + xDistance;
+            if(newPoint.direction === 'left') {                
+                if(pointers.length !== 0) {
+                    newPoint.x = wayPoint.x + xDistance - nodePointerSize.width;
                 } else {
-                    // 시작점에서 오른쪽으로 타깃 포인트가 없으면 x -> y -> x 순으로 이동해야 하므로.
-                    let distanceVal = xDistance * breakPoint;
-                    if(distanceVal < itemPointerSize.width) distanceVal = itemPointerSize.width;
-                    newPoint.x = wayPoint.x + distanceVal;
+                    newPoint.x = wayPoint.x + nodePointerSize.width;
+                }
+            } else {
+                if(Math.round(newPoint.y) === Math.round(toPoint.y)) {
+                    newPoint.x = wayPoint.x + xDistance
+                } else {
+                    let breakDistance = xDistance * breakPoint;
+
+                    if(isTargetPointerEmpty === true) {
+                        if(breakDistance < nodePointerSize.width) breakDistance = nodePointerSize.width;
+                    } else {
+                        if(breakDistance < itemPointerSize.width) breakDistance = itemPointerSize.width;
+                    }
+
+                    newPoint.x = wayPoint.x + breakDistance;
                 }
             }
         } else {
@@ -293,8 +312,8 @@ function searchPath(searchPathParam) {
             } else {
                 newPoint.direction = "top";
             }
-
-            if(newPoint.x === fromPoint.x) { // x가 시작포인트와 동일하고
+            
+            if(Math.round(newPoint.x) === Math.round(fromPoint.x)) { // x가 시작포인트와 동일하고
                 if(edge === 'top' && (fromPoint.y - itemPointerSize.height * 2) < toPoint.y) { // 도착점이 시작점보다 탑에서 멀면
                     newPoint.y = wayPoint.y - itemPointerSize.height;
                 } else if(edge === 'bottom' && (fromPoint.y + itemPointerSize.height * 2) > toPoint.y) {
@@ -307,7 +326,17 @@ function searchPath(searchPathParam) {
                     }
                 }
             } else {
-                newPoint.y = wayPoint.y + yDistance;
+                if(newPoint.x < toPoint.x) {
+                    newPoint.y = wayPoint.y + yDistance;
+                } else {
+
+                    // 도착 포인트가 시작포인트보다 -에 있을 경우 y 포인트가 충분히 이동하지 못해서
+                    // 노드 안으로 침범하는것을 방지하기 위해서
+                    newPoint.y = wayPoint.y + yDistance * breakPoint;
+                    if(fromNode.top <= newPoint.y && newPoint.y <= fromNode.bottom) {
+                        newPoint.y = wayPoint.y + yDistance;
+                    }
+                }
             }
         }
 

@@ -1,3 +1,8 @@
+/**
+ * Checks if the input array is empty
+ * @param {Array} array - The input array to check for being empty.
+ * @returns {boolean} - Returns true if the input array is empty or not an array, otherwise false.
+ */
 function isEmptyArray(array) {
     if(Array.isArray(array) && array.length > 0) {
         return(false);
@@ -6,6 +11,14 @@ function isEmptyArray(array) {
     }
 }
 
+
+
+/**
+ * Compares values of two parameters, either objects or primitives
+ * @param {object} param1 First input value for the comparison.
+ * @param {object} param2 Second input value for the comparison.
+ * @returns {boolean} - Returns true if both the inputs are equal, otherwise false.
+ */
 function compareObjectValue(param1, param2) {
     if (typeof param1 !== 'object' || typeof param2 !== 'object') {
         return param1 === param2; // 두 값이 모두 객체가 아닌 경우 일반 비교 연산 사용

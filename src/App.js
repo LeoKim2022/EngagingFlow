@@ -25,7 +25,7 @@ initializeApp(firebaseConfig);
 
 function App() {
 
-    const [flowSize, setFlowSize] = useState({
+    const [flowRect, setFlowRect] = useState({
         width : 0,
         height: 0,
     });
@@ -36,25 +36,29 @@ function App() {
         window.requestAnimationFrame(() => {
             if(flowBoxRef.current) {
                 if(
-                    flowSize.width !== flowBoxRef.current.offsetWidth ||
-                    flowSize.height !== flowBoxRef.current.offsetHeight
+                    flowRect.width !== flowBoxRef.current.offsetWidth ||
+                    flowRect.height !== flowBoxRef.current.offsetHeight
                 ) {
-                    setFlowSize({
+                    setFlowRect({
                         width : flowBoxRef.current.offsetWidth,
                         height: flowBoxRef.current.offsetHeight,
+                        top: parseFloat(flowBoxRef.current.style.top),
+                        left: parseFloat(flowBoxRef.current.style.left),
                     });
                 }
             }
         });
-    }, [flowSize]);
+    }, [flowRect]);
 
     window.addEventListener('resize', handleResize);
 
     useEffect(() => {
         if(flowBoxRef.current) {
-            setFlowSize({
+            setFlowRect({
                 width : flowBoxRef.current.offsetWidth,
                 height: flowBoxRef.current.offsetHeight,
+                top: parseFloat(flowBoxRef.current.style.top),
+                left: parseFloat(flowBoxRef.current.style.left),
             });
         }
     }, []);
@@ -74,7 +78,7 @@ function App() {
                     left: '50px'
                 }}
             >
-                <EngagingFlow boxSize={flowSize}/>
+                <EngagingFlow boxRect={flowRect}/>
             </div>
         </div>
     )
