@@ -4,8 +4,8 @@ import './control.css'
 
 export default function ControlBox(props) {
 
-    console.log("🚀 ~ props.highlightNode:", props.highlightNode);
-    console.log("🚀 ~ props.highlightItem:", props.highlightItem);
+    // console.log("🚀 ~ props.highlightNode:", props.highlightNode);
+    // console.log("🚀 ~ props.highlightItem:", props.highlightItem);
 
     let controlRect = null;
     let highLightItem = null;
@@ -25,7 +25,7 @@ export default function ControlBox(props) {
             height: (rectBottom - rectTop) / scaleValueOrigin,
         }
 
-        // TODO: Check selected item
+        // TODO: *** 2023--6-01 *** Check selected item
     } else {
 
         
