@@ -48,4 +48,26 @@ function getGridPosition(editorScale, containerPosition, parentSizeWithGap) {
     })
 }
 
-export {getParentElement, getGridPosition}
+
+
+/**
+ * This function converts the client coordinates (such as the position of the cursor) into a flow-relative coordinate system. 
+ * @param {number} editorScale - The scale of the editor.
+ * @param {Object} boxRect - An object representing the box rectangle dimensions {left, top}.
+ * @param {Object} containerPosition - An object representing the container x and y positions {left, top}.
+ * @param {Object} clientCoord - An object representing the client x and y coordinates {x, y}.
+ * @returns {Object} - An object representing the transformed x and y coordinates {x, y}.
+ */
+function convertClientCoordToFlow(editorScale, boxRect, containerPosition, clientCoord) {
+    const scaleOrigin = editorScale / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+
+    const newX = (clientCoord.x - boxRect.left - 1) / scaleOrigin - containerPosition.left;
+    const newY = (clientCoord.y - boxRect.top - 1 ) / scaleOrigin - containerPosition.top;
+
+    return({
+        x: newX,
+        y: newY
+    });
+}
+
+export {getParentElement, getGridPosition, convertClientCoordToFlow}

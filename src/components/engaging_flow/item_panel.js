@@ -14,13 +14,13 @@ export default function ItemPanel(props) {
                 height: item.height
             }}
 
-            onMouseEnter={(event) => {
+            onMouseOver={(event) => {
                 if(event.target.classList.contains('item-panel')) {
                     props.onUpdateHighlightItem(event, event.target);
                 }
             }}
 
-            onMouseLeave={(event) => {
+            onMouseOut={(event) => {
                 if(event.target.classList.contains('item-panel')) {
                     props.onUpdateHighlightItem(event, event.target);
                 }

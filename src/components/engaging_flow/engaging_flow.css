@@ -45,7 +45,8 @@
     width: fit-content;
     background-color: white;
     user-select: none;
-    line-height: 0px;    
+    line-height: 0px;
+    box-sizing: border-box;
 }
 
 .flow-node div {

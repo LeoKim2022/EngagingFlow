@@ -77,7 +77,8 @@ export default function Node(props) {
                 props.onNodeMouseUp(event);
             }}
 
-            onMouseEnter={(event) => {
+            onMouseOver={(event) => {
+
                 let highlightTarget = null;
                 if(event.target.classList.contains('flow-node')) {
                     highlightTarget = event.target;
@@ -86,10 +87,11 @@ export default function Node(props) {
                     highlightTarget = flowNode;
                 }
 
-                if(highlightTarget) props.onUpdateHighlightNode(event, highlightTarget);
+                props.onUpdateHighlightNode(event, highlightTarget);
             }}
 
-            onMouseLeave={(event) => {
+            onMouseOut={(event) => {
+
                 let highlightTarget = null;
                 if(event.target.classList.contains('flow-node')) {
                     highlightTarget = event.target;
@@ -97,8 +99,8 @@ export default function Node(props) {
                     const flowNode = getParentElement(event.target, 'flow-node');
                     highlightTarget = flowNode;
                 }
-
-                if(highlightTarget) props.onUpdateHighlightNode(event, highlightTarget);
+                
+                props.onUpdateHighlightNode(event, highlightTarget);
             }}
         >
 

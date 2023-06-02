@@ -289,6 +289,7 @@ export default function EngagingFlow(props) {
             setMouseClientY(event.clientY);
         }
 
+
     };
 
 
@@ -338,16 +339,27 @@ export default function EngagingFlow(props) {
             }
         } else {
             let scaleVal;
+
             if(event.deltaY > 0) {
                 scaleVal = -1;
             } else if(event.deltaY < 0) {
                 scaleVal = 1;
             }
 
-            setContainerPosition({
-                top: containerPosition.top + DEFINITION.FLOW_GRID_SIZE * scaleVal,
-                left: containerPosition.left,
-            })
+            if(event.altKey) {
+                setContainerPosition({
+                    top: containerPosition.top,
+                    left: containerPosition.left + DEFINITION.FLOW_GRID_SIZE * scaleVal,
+                });
+            } else {
+                setContainerPosition({
+                    top: containerPosition.top + DEFINITION.FLOW_GRID_SIZE * scaleVal,
+                    left: containerPosition.left,
+                });
+            }
+
+            setHighlightNode(null);
+            setHighlightItem(null);
         }
     }, [containerPosition, editorScaleLev]);
 
@@ -407,7 +419,7 @@ export default function EngagingFlow(props) {
      */
     function updateHighlightNode(event, element) {
 
-        if(event.type === 'mouseenter') {
+        if(event.type === 'mouseover' && element !== null) {
             const nodeId = element.getAttribute("id");
             if(nodeId) setHighlightNode(nodeId);
         } else {
@@ -424,7 +436,7 @@ export default function EngagingFlow(props) {
      */
     function updateHighlightItem(event, element) {
 
-        if(event.type === 'mouseenter') {
+        if(event.type === 'mouseover' && element !== null) {
             const itemId = element.getAttribute("id");
             if(itemId) setHighlightItem(itemId);
         } else {
@@ -684,6 +696,8 @@ export default function EngagingFlow(props) {
             >
                 <div style={{marginLeft: 20}}><span>Update log</span></div>
                 <ul>
+                    <li>Add wheel + altKey action</li>
+                    <li>Add item or node highlight</li>
                     <li>drawing rect by drag on flow-editor</li>
                     <li>'Flow Config' with useContext()</li>
                 </ul>

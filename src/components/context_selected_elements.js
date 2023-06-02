@@ -9,27 +9,27 @@ const ContextSelectedElements = createContext();
  */
 function selectedElementsReducer(state, action) {
 
-    // action에 있는 값만 비교한다. 항상 전부를 설정할 필요는 없다.
-    if(typeof action !== 'object' || Object.keys(action).length < 1 ) return(state);
+    // // action에 있는 값만 비교한다. 항상 전부를 설정할 필요는 없다.
+    // if(typeof action !== 'object' || Object.keys(action).length < 1 ) return(state);
 
-    const copyState = JSON.parse(JSON.stringify(state));
-    const actionKeys = Object.keys(action);
+    // const copyState = JSON.parse(JSON.stringify(state));
+    // const actionKeys = Object.keys(action);
 
-    let hasDifferent = false;
-    for(let index = 0, limit = actionKeys.length; index < limit; ++index) {        
-        const key = actionKeys[index];
-        if(state[key] !== action[key]) {
-            hasDifferent = true;
-            break;
-        }
-    }
+    // let hasDifferent = false;
+    // for(let index = 0, limit = actionKeys.length; index < limit; ++index) {        
+    //     const key = actionKeys[index];
+    //     if(state[key] !== action[key]) {
+    //         hasDifferent = true;
+    //         break;
+    //     }
+    // }
 
-    if(hasDifferent) {
-        Object.assign(copyState, action);
-        return(copyState);
-    } else {
-        return(state);
-    }
+    // if(hasDifferent) {
+    //     Object.assign(copyState, action);
+    //     return(copyState);
+    // } else {
+    //     return(state);
+    // }
 }
 
 

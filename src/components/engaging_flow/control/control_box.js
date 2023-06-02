@@ -4,9 +4,6 @@ import './control.css'
 
 export default function ControlBox(props) {
 
-    // console.log("🚀 ~ props.highlightNode:", props.highlightNode);
-    // console.log("🚀 ~ props.highlightItem:", props.highlightItem);
-
     let controlRect = null;
     let highLightItem = null;
 
@@ -24,11 +21,49 @@ export default function ControlBox(props) {
             width: (rectRight - rectLeft) / scaleValueOrigin,
             height: (rectBottom - rectTop) / scaleValueOrigin,
         }
-
-        // TODO: *** 2023--6-01 *** Check selected item
-    } else {
-
         
+    } else {
+        if(props.highlightItem) {
+
+            let targetItem = null;
+            const targetNode = props.nodeData.find((node) => {
+                if(Array.isArray(node.items)) {
+                    targetItem = node.items.find((item) => {
+                        return(item.id === props.highlightItem);
+                    });
+
+                    if(targetItem) return(true);
+                        else return(false);
+                }
+
+                return(false);
+            });
+            
+            if(targetNode && targetItem) {
+                highLightItem = {                    
+                    top   : targetNode.top + targetItem.top + 1,
+                    left  : targetNode.left + targetItem.left + 1,
+                    width : targetItem.width - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH,
+                    height: targetItem.height - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH,
+                }
+            }
+
+        } else if(props.highlightNode) {
+
+            const targetNode = props.nodeData.find((node) => {                
+                return(node.id === props.highlightNode);
+            });
+            
+            if(targetNode) {
+                highLightItem = {                    
+                    top   : targetNode.top,
+                    left  : targetNode.left,
+                    width : targetNode.width - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH * 2,
+                    height: targetNode.height - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH * 2,
+                }
+            }
+
+        }        
     }
 
     return(

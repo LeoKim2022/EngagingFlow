@@ -351,7 +351,7 @@ function searchPath(searchPathParam) {
                 const pushPointer = Object.assign({isInside: insideFrom}, newPoint);
                 if(axis === "x") {
                     if(wayPoint.x < toPoint.x) {
-                        pushPointer.x = fromNode.right;
+                        pushPointer.x = fromNode.right - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH;
                         pointers.push(pushPointer);
                             
                     } else {
@@ -361,10 +361,10 @@ function searchPath(searchPathParam) {
                     
                 } else {
                     if(wayPoint.y > toPoint.y) {
-                        pushPointer.y = fromNode.top;
+                        pushPointer.y = fromNode.top + DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH;
                         pointers.push(pushPointer);
                     } else {
-                        pushPointer.y = fromNode.bottom;
+                        pushPointer.y = fromNode.bottom - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH;
                         pointers.push(pushPointer);
                     }    
                 }
