@@ -4,14 +4,10 @@ const breakPoint = 1 / 2;
 
 function connectPath(params) {
     
-    const fromItem = params.fromItem;
-    addRightBottom(fromItem);
-
+    // const fromItem = params.fromItem;
     const fromNode = params.fromNode;
-    addRightBottom(fromNode);
 
     let toNode = params.toNode;
-    if(toNode) addRightBottom(toNode);
 
     // 아이템 포인터가 생기는 edge
     const nearEdgeResult = findStartEdge(params);
@@ -45,17 +41,6 @@ function connectPath(params) {
         pathPoints: pathPoints,
     });
     
-}
-
-
-
-/**
- * 
- * @param rect 
- */
-function addRightBottom(rect) {
-    rect.right  = rect.left + rect.width;
-    rect.bottom = rect.top + rect.height;
 }
 
 
@@ -351,7 +336,7 @@ function searchPath(searchPathParam) {
                 const pushPointer = Object.assign({isInside: insideFrom}, newPoint);
                 if(axis === "x") {
                     if(wayPoint.x < toPoint.x) {
-                        pushPointer.x = fromNode.right - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH;
+                        pushPointer.x = fromNode.right - DEFINITION.NODE_BORDER_WIDTH;
                         pointers.push(pushPointer);
                             
                     } else {
@@ -361,10 +346,10 @@ function searchPath(searchPathParam) {
                     
                 } else {
                     if(wayPoint.y > toPoint.y) {
-                        pushPointer.y = fromNode.top + DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH;
+                        pushPointer.y = fromNode.top + DEFINITION.NODE_BORDER_WIDTH;
                         pointers.push(pushPointer);
                     } else {
-                        pushPointer.y = fromNode.bottom - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH;
+                        pushPointer.y = fromNode.bottom - DEFINITION.NODE_BORDER_WIDTH;
                         pointers.push(pushPointer);
                     }    
                 }

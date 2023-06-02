@@ -16,13 +16,19 @@ export default function ItemPanel(props) {
 
             onMouseOver={(event) => {
                 if(event.target.classList.contains('item-panel')) {
-                    props.onUpdateHighlightItem(event, event.target);
+                    props.onUpdateHighlightItem(event);
                 }
             }}
 
             onMouseOut={(event) => {
                 if(event.target.classList.contains('item-panel')) {
-                    props.onUpdateHighlightItem(event, event.target);
+                    props.onUpdateHighlightItem(event);
+                }
+            }}
+
+            onMouseDown={(event) => {
+                if(event.target.classList.contains('item-panel')) {
+                    props.onItemMouseDown(event);
                 }
             }}
         >

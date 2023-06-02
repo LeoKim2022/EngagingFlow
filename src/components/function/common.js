@@ -1,4 +1,26 @@
 /**
+ * Checks if elementA is inside elementB, considering their position and dimensions.
+ *
+ * @param {Object} elementA - The first element with properties: top, left, right, bottom.
+ * @param {Object} elementB - The second element with properties: top, left, right, bottom.
+ * @returns {boolean} Returns true if elementA is inside elementB, otherwise returns false.
+ */
+function isAInB(elementA, elementB) {
+    if(
+        elementA.top > elementB.top &&
+        elementA.left > elementB.left &&
+        elementA.right < elementB.right &&
+        elementA.bottom < elementB.bottom
+    ) {
+        return(true);
+    } else {
+        return(false);
+    }
+}
+
+
+
+/**
  * Checks if the input array is empty
  * @param {Array} array - The input array to check for being empty.
  * @returns {boolean} - Returns true if the input array is empty or not an array, otherwise false.
@@ -40,4 +62,4 @@ function compareObjectValue(param1, param2) {
     return true; // 모든 비교가 통과한 경우 true 반환
 }
 
-export {isEmptyArray, compareObjectValue}
+export {isAInB, isEmptyArray, compareObjectValue}

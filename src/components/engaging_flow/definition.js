@@ -10,17 +10,22 @@ const DEFINITION = Object.freeze({
     FLOW_SCALE_LEVEL_RATE : 10,
 
     FLOW_GRID_SIZE : 40,
-    HIGHRIGHT_ITEM_BORDER_WIDTH: 2,
+
+    CONTROL_RECT_BORDER_WIDTH : 2,
+    CONTROL_RECT_BORDER_MARGIN: 8,
+
+    NODE_BORDER_WIDTH: 2,
+    ITEM_BORDER_WIDTH: 1,
 
     // 현재 구조상 이론적으로 7번을 넘을수가 없다.
     MAXIMUM_PATH_POINTER_COUNT: 7,
     
     FlowActionMode : Object.freeze({
-        none:    0,
-        flow:    100,
-        node:    200,
-        pointer: 300,
-        rect:    400,
+        none:     0,
+        flow:     100,
+        selected: 200,
+        pointer:  300,
+        rect:     400,
     }),
     
     NodePointerSize : Object.freeze({
@@ -42,6 +47,11 @@ const DEFINITION = Object.freeze({
     ScrollBarType : Object.freeze({
         horizontal: 100,
         vertical:   200,
+    }),
+    
+    ElementType : Object.freeze({
+        node: 100,
+        item: 200,
     }),
     
     KeyCode : Object.freeze({

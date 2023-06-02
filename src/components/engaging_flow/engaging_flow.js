@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useReducer } from 'react';
 
 import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
 import {connectPath} from '../function/connect_path'
 import {nodeData} from '../common/node_data'
-import {getParentElement, getGridPosition} from './flow_function'
+import {findNodeElement, getParentElement, getGridPosition} from './flow_function'
 
 import {GlobalConfigProvider} from '../context_global_config'
 
@@ -25,7 +25,7 @@ export default function EngagingFlow(props) {
     /**********************************************************************/
     // set useState
     /**********************************************************************/
-    const [dragTargetNode, setDragTargetNode] = useState(null);
+    // const [dragTargetNode, setDragTargetNode] = useState(null);
     const [flowDragMode, setFlowDragMode] = useState(DEFINITION.FlowActionMode.none);
 
     const [targetDragInfo, setTargetDragInfo] = useState({top: 0, left: 0});
@@ -43,8 +43,10 @@ export default function EngagingFlow(props) {
     const [mouseClientX, setMouseClientX] = useState(null);
     const [mouseClientY, setMouseClientY] = useState(null);
 
-    const [highlightNode, setHighlightNode] = useState(null);
-    const [highlightItem, setHighlightItem] = useState(null);
+    const [highlightNodeId, setHighlightNodeId] = useState(null);
+    const [highlightItemId, setHighlightItemId] = useState(null);
+
+    const [selectedElements, setSelectedElements] = useReducer(selectedElementsReducer, []);
 
     /**********************************************************************/
     // event handler
@@ -59,6 +61,7 @@ export default function EngagingFlow(props) {
         switch(event.buttons) {
             
             case DEFINITION.MouseButtons.left: {
+
                 if(spaceKeyHold) {
                     initFlowDragMode(event);
                 } else {
@@ -68,6 +71,7 @@ export default function EngagingFlow(props) {
                         clientY: event.clientY,
                     });
 
+                    setSelectedElements([]);
                 }
 
                 break;
@@ -86,6 +90,7 @@ export default function EngagingFlow(props) {
                 break;
             }
         }
+            
     };
 
 
@@ -132,6 +137,48 @@ export default function EngagingFlow(props) {
      * 
      * @param event 
      */    
+    function handleMouseDownOnItem(event) {
+        switch(event.buttons) {
+            case DEFINITION.MouseButtons.left: {
+                if(!spaceKeyHold && event.target.classList.contains('item-panel')) {
+
+                    event.stopPropagation();
+
+                    const itemId = event.target.getAttribute("id");
+                    const findItem = findNodeElement(itemId, DEFINITION.ElementType.item, flowData);
+
+                    if(findItem) {
+
+                        updateSelectedElements(event.shiftKey, DEFINITION.ElementType.item, findItem.id);
+
+                        setTargetDragInfo({
+                            clientX: event.clientX,
+                            clientY: event.clientY,
+                        });
+                    }
+                }
+                break;
+            }
+        
+            case DEFINITION.MouseButtons.right: {
+                event.preventDefault();
+                event.stopPropagation();
+                console.log("🚀 ~ onItem.right:");
+                break;
+            }
+        
+            default: {
+                break;
+            }
+        }
+    };
+
+
+    
+    /**
+     * 
+     * @param event 
+     */    
     function handleMouseDownOnNode(event) {
         switch(event.buttons) {
             case DEFINITION.MouseButtons.left: {
@@ -139,27 +186,18 @@ export default function EngagingFlow(props) {
                     initFlowDragMode(event);
                 } else {
                     let targetNode = getParentElement(event.target, 'flow-node');
-                    if(!targetNode) {
-                        setFlowDragMode(DEFINITION.FlowActionMode.none);
-                        return;
-                    } else {
-                        setFlowDragMode(DEFINITION.FlowActionMode.node);
-                    }
-            
-                    setDragTargetNode(targetNode);
-                    const findItem = flowData.find((element) => { return(element.id === targetNode.getAttribute('id')) });
-                    if(!findItem) {
-                        setFlowDragMode(DEFINITION.FlowActionMode.none);
-                    }
-            
-                    setTargetDragInfo({
-                        clientX: event.clientX,
-                        clientY: event.clientY,
-                        targetTop : findItem.top,
-                        targetLeft: findItem.left,
-                    });
+                    const findNode = flowData.find((element) => { return(element.id === targetNode.getAttribute('id')) });
 
+                    if(findNode) {
 
+                        updateSelectedElements(event.shiftKey, DEFINITION.ElementType.node, findNode.id);
+
+                        setTargetDragInfo({
+                            clientX: event.clientX,
+                            clientY: event.clientY,
+                        });
+
+                    }
                 }
                 break;
             }
@@ -203,17 +241,7 @@ export default function EngagingFlow(props) {
      * 
      */    
     function handleMouseUp(event) {
-        // TODO: connectionDraw - handleMouseUp
-
-        // console.log("🚀 ~ event:", event);        
-        // console.log("🚀 ~ finishDrag:", flowDragMode);
-
-        // if() {
-
-        // }
-
-        finishDrag();
-        
+        finishDrag();        
     };
 
 
@@ -232,30 +260,31 @@ export default function EngagingFlow(props) {
      * @param event 
      */    
     function handleMouseMove(event) {
-        if (flowDragMode === DEFINITION.FlowActionMode.node && dragTargetNode) {
-            const copyFlowData = JSON.parse(JSON.stringify(flowData));
 
-            const findItem = copyFlowData.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
+        if (flowDragMode === DEFINITION.FlowActionMode.selected && selectedElements.length) {
+            // const copyFlowData = JSON.parse(JSON.stringify(flowData));
+
+            // const findItem = copyFlowData.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
     
-            if(findItem) {
-                const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+            // if(findItem) {
+            //     const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
-                let newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
-                let newLeft = (event.clientX - targetDragInfo.clientX) / scaleOrigin + targetDragInfo.targetLeft;
+            //     let newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
+            //     let newLeft = (event.clientX - targetDragInfo.clientX) / scaleOrigin + targetDragInfo.targetLeft;
 
-                newTop = Math.round(newTop / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
-                newLeft = Math.round(newLeft / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
+            //     newTop = Math.round(newTop / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
+            //     newLeft = Math.round(newLeft / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
 
-                if(
-                    findItem.top !== newTop ||
-                    findItem.left !== newLeft
-                ) {
-                    findItem.top  = newTop;
-                    findItem.left = newLeft;
+            //     if(
+            //         findItem.top !== newTop ||
+            //         findItem.left !== newLeft
+            //     ) {
+            //         findItem.top  = newTop;
+            //         findItem.left = newLeft;
      
-                    setFlowData(copyFlowData);
-                }
-            }
+            //         setFlowData(copyFlowData);
+            //     }
+            // }
         } else if(flowDragMode === DEFINITION.FlowActionMode.flow) {
             const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
@@ -288,7 +317,6 @@ export default function EngagingFlow(props) {
             setMouseClientX(event.clientX);
             setMouseClientY(event.clientY);
         }
-
 
     };
 
@@ -358,8 +386,8 @@ export default function EngagingFlow(props) {
                 });
             }
 
-            setHighlightNode(null);
-            setHighlightItem(null);
+            setHighlightNodeId(null);
+            setHighlightItemId(null);
         }
     }, [containerPosition, editorScaleLev]);
 
@@ -373,7 +401,7 @@ export default function EngagingFlow(props) {
      */
     function finishDrag() {
         setFlowDragMode(DEFINITION.FlowActionMode.none);
-        setDragTargetNode(null);
+        // setDragTargetNode(null);
         setOutPointerDrag(null);
         setMouseClientX(null);
         setMouseClientY(null);
@@ -421,9 +449,9 @@ export default function EngagingFlow(props) {
 
         if(event.type === 'mouseover' && element !== null) {
             const nodeId = element.getAttribute("id");
-            if(nodeId) setHighlightNode(nodeId);
+            if(nodeId) setHighlightNodeId(nodeId);
         } else {
-            setHighlightNode(null);
+            setHighlightNodeId(null);
         }
 
     }
@@ -434,13 +462,79 @@ export default function EngagingFlow(props) {
      * 
      * @param  
      */
-    function updateHighlightItem(event, element) {
+    function updateHighlightItem(event) {
 
-        if(event.type === 'mouseover' && element !== null) {
-            const itemId = element.getAttribute("id");
-            if(itemId) setHighlightItem(itemId);
+        if(event.type === 'mouseover' && event.target !== null) {
+            const itemId = event.target.getAttribute("id");
+            if(itemId) setHighlightItemId(itemId);
         } else {
-            setHighlightItem(null);
+            setHighlightItemId(null);
+        }
+
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
+    function selectedElementsReducer(state, action) {
+        if(JSON.stringify(state) === JSON.stringify(action)) return(state);
+            else return(action);
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
+    function updateSelectedElements(shiftKey, elementType, elementId, option = {}) {
+
+        if(shiftKey) {
+
+            const findIndex = selectedElements.findIndex((element) => {
+                return(element.id === elementId && element.type === elementType);
+            });
+
+            const copySelectedElements = JSON.parse(JSON.stringify(selectedElements));
+
+            if(option.forceAdd !== undefined) {
+                if(option.forceAdd) {
+                    if(findIndex < 0) {
+                        copySelectedElements.push({
+                            id: elementId,
+                            type: elementType,
+                        });
+    
+                        setSelectedElements(copySelectedElements);
+                    }
+                } else {
+                    if(findIndex > -1) {
+                        copySelectedElements.splice(findIndex, 1);
+                        setSelectedElements(copySelectedElements);
+                    }
+                }
+            } else {
+                if(findIndex > -1) {
+                    copySelectedElements.splice(findIndex, 1);
+                } else {
+                    copySelectedElements.push({
+                        id: elementId,
+                        type: elementType,
+                    });
+                }                
+                setSelectedElements(copySelectedElements);
+            }
+
+        } else {
+
+            setSelectedElements([{
+                id: elementId,
+                type: elementType,
+            }]);
+
         }
 
     }
@@ -471,6 +565,10 @@ export default function EngagingFlow(props) {
     // make html parts
     /**********************************************************************/
     const nodeHtml = flowData.map((node, index) => {
+
+        node.right  = node.left + node.width;
+        node.bottom = node.top + node.height;
+
         return(
             <Node 
                 key={index} 
@@ -490,6 +588,8 @@ export default function EngagingFlow(props) {
 
                 onUpdateHighlightNode={updateHighlightNode}
                 onUpdateHighlightItem={updateHighlightItem}
+
+                onItemMouseDown={handleMouseDownOnItem}
             />
         )
     })
@@ -528,7 +628,6 @@ export default function EngagingFlow(props) {
         }
 
         if(node.action) {
-            // TODO: node 에서 node로 가는 connection
             const targetNode = flowData.find((element) => { return(element.id === node.action.id) });
             if(targetNode) {
                 const pathInfo = connectPath({
@@ -558,7 +657,7 @@ export default function EngagingFlow(props) {
 
     let containerDragClass;
     switch(flowDragMode) {
-        case DEFINITION.FlowActionMode.node: {
+        case DEFINITION.FlowActionMode.selected: {
             containerDragClass = 'node-dragging';
             break;
         }
@@ -626,7 +725,6 @@ export default function EngagingFlow(props) {
                                 pathInfo={outPointerDrag?.pathInfo}
                             />
                         </svg>
-
                     </div>
 
                     <ControlBox 
@@ -638,8 +736,10 @@ export default function EngagingFlow(props) {
                         boxRect={props.boxRect}
                         containerPosition={containerPosition}
                         flowDragMode={flowDragMode}
-                        highlightNode={highlightNode}
-                        highlightItem={highlightItem}
+                        highlightNodeId={highlightNodeId}
+                        highlightItemId={highlightItemId}
+                        selectedElements={selectedElements}
+                        updateSelectedElements={updateSelectedElements}
                     />
                 </div>
 
@@ -692,17 +792,20 @@ export default function EngagingFlow(props) {
                     backgroundColor: 'lightgray',
                     borderTopLeftRadius: 10,
                     textAlign: 'left',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
                 }}
             >
                 <div style={{marginLeft: 20}}><span>Update log</span></div>
-                <ul>
+                <ol type="1">
+                    <li>Add 'item select with shiftKey'</li>
+                    <li>Add 'item select' feature</li>
                     <li>Add wheel + altKey action</li>
                     <li>Add item or node highlight</li>
                     <li>drawing rect by drag on flow-editor</li>
                     <li>'Flow Config' with useContext()</li>
-                </ul>
+                </ol>
             </div>
-
         </GlobalConfigProvider>
     )
 }

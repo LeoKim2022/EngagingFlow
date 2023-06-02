@@ -1,70 +1,133 @@
+import { useEffect } from 'react';
+import { isAInB, isEmptyArray } from '../../function/common';
 import {DEFINITION} from '../definition'
 
 import './control.css'
 
+import SelectedElements from './selected_elements'
+
 export default function ControlBox(props) {
 
-    let controlRect = null;
-    let highLightItem = null;
+    const nodeData = props.nodeData;
+    const updateSelectedElements = props.updateSelectedElements;
+
+    let controlDragStyle = null;
+    let highLightItemStyle = null;
 
     if(props.flowDragMode === DEFINITION.FlowActionMode.rect && props.mouseClientY !== null && props.mouseClientX !== null) {
-        
+
         const scaleValueOrigin = props.editorScaleLev / 10;
         const rectTop    = Math.min(props.targetDragInfo.clientY, props.mouseClientY);
         const rectLeft   = Math.min(props.targetDragInfo.clientX, props.mouseClientX);
         const rectRight  = Math.max(props.targetDragInfo.clientX, props.mouseClientX);
         const rectBottom = Math.max(props.targetDragInfo.clientY, props.mouseClientY);
     
-        controlRect = {
+        controlDragStyle = {
             top: (rectTop - props.boxRect.top) / scaleValueOrigin - props.containerPosition.top,
             left: (rectLeft - props.boxRect.left) / scaleValueOrigin - props.containerPosition.left,
             width: (rectRight - rectLeft) / scaleValueOrigin,
             height: (rectBottom - rectTop) / scaleValueOrigin,
         }
+
+        controlDragStyle.right = controlDragStyle.left + controlDragStyle.width;
+        controlDragStyle.bottom = controlDragStyle.top + controlDragStyle.height;
         
     } else {
-        if(props.highlightItem) {
 
-            let targetItem = null;
-            const targetNode = props.nodeData.find((node) => {
-                if(Array.isArray(node.items)) {
-                    targetItem = node.items.find((item) => {
-                        return(item.id === props.highlightItem);
-                    });
+        if(props.highlightItemId) {
 
-                    if(targetItem) return(true);
-                        else return(false);
-                }
-
-                return(false);
+            const selectedItemIndex = props.selectedElements.findIndex((item) => {
+                return(item.id === props.highlightItemId && item.type === DEFINITION.ElementType.item);
             });
-            
-            if(targetNode && targetItem) {
-                highLightItem = {                    
-                    top   : targetNode.top + targetItem.top + 1,
-                    left  : targetNode.left + targetItem.left + 1,
-                    width : targetItem.width - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH,
-                    height: targetItem.height - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH,
+
+            if(selectedItemIndex < 0) {
+                let targetItem = null;
+                const targetNode = nodeData.find((node) => {
+                    if(Array.isArray(node.items)) {
+                        targetItem = node.items.find((item) => {
+                            return(item.id === props.highlightItemId);
+                        });
+    
+                        if(targetItem) return(true);
+                            else return(false);
+                    }
+    
+                    return(false);
+                });
+                
+                if(targetNode && targetItem) {
+                    highLightItemStyle = {
+                        top   : targetNode.top + targetItem.top + DEFINITION.ITEM_BORDER_WIDTH,
+                        left  : targetNode.left + targetItem.left + DEFINITION.ITEM_BORDER_WIDTH,
+                        width : targetItem.width + DEFINITION.ITEM_BORDER_WIDTH,
+                        height: targetItem.height + DEFINITION.ITEM_BORDER_WIDTH,
+                    }
                 }
             }
 
-        } else if(props.highlightNode) {
+        } else if(props.highlightNodeId) {
 
-            const targetNode = props.nodeData.find((node) => {                
-                return(node.id === props.highlightNode);
+            const selectedNodeIndex = props.selectedElements.findIndex((item) => {
+                return(item.id === props.highlightNodeId && item.type === DEFINITION.ElementType.node);
             });
-            
-            if(targetNode) {
-                highLightItem = {                    
-                    top   : targetNode.top,
-                    left  : targetNode.left,
-                    width : targetNode.width - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH * 2,
-                    height: targetNode.height - DEFINITION.HIGHRIGHT_ITEM_BORDER_WIDTH * 2,
+
+            if(selectedNodeIndex < 0) {
+                const targetNode = nodeData.find((node) => {
+                    return(node.id === props.highlightNodeId);
+                });
+                
+                if(targetNode) {
+                    highLightItemStyle = {                    
+                        top   : targetNode.top,
+                        left  : targetNode.left,
+                        width : targetNode.width,
+                        height: targetNode.height,
+                    }
                 }
             }
 
         }        
     }
+
+    useEffect(() => {
+        if(!controlDragStyle) return;
+
+        // Engaging flow 특성상 완전히 포함되는 element만 선택하도록 조정합니다.
+        // 조금이라도 겹치는 영역으로 선택하게 되면, element만 선택할수 있는 방법이 없다.
+        for(let index = 0, limit = nodeData.length; index < limit; ++index) {
+
+            const node = nodeData[index];
+
+            if(isAInB(node, controlDragStyle)) {
+                updateSelectedElements(true, DEFINITION.ElementType.node, node.id, {forceAdd: true});
+            } else {
+                updateSelectedElements(true, DEFINITION.ElementType.node, node.id, {forceAdd: false});
+            }
+
+            if(!isEmptyArray(node.items)) {
+                for(let itemIndex = 0, itemLimit = node.items.length; itemIndex < itemLimit; ++itemIndex) {
+
+                    const item = node.items[itemIndex];
+                    if(!item.id) continue;
+
+                    const itemPositionFromFlow = {
+                        top: node.top + item.top,
+                        left: node.left + item.left,
+                        right: node.left + item.right,
+                        bottom: node.top + item.bottom,
+                    }
+
+                    if(isAInB(itemPositionFromFlow, controlDragStyle)) {
+                        updateSelectedElements(true, DEFINITION.ElementType.item, item.id, {forceAdd: true});
+                    } else {
+                        updateSelectedElements(true, DEFINITION.ElementType.item, item.id, {forceAdd: false});
+                    }
+
+                }
+            }
+
+        }
+    }, [controlDragStyle, nodeData, updateSelectedElements]);
 
     return(
         <div 
@@ -75,18 +138,20 @@ export default function ControlBox(props) {
             }}
         >
             {
-                (controlRect) ? <div 
-                    className='flow-control-rect'
-                    style={controlRect}
+                (controlDragStyle) ? <div 
+                    className='control-rect-drag'
+                    style={controlDragStyle}
                 /> : null
             }
 
             {
-                (highLightItem) ? <div 
+                (highLightItemStyle) ? <div 
                     className='flow-highlight-item'
-                    style={highLightItem}
+                    style={highLightItemStyle}
                 /> : null
             }
+
+            <SelectedElements selectedElements={props.selectedElements} nodeData={nodeData}/>            
 
         </div>
     )

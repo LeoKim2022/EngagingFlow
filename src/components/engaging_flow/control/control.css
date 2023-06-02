@@ -4,20 +4,49 @@
     left: 0px;
 }
 
-.flow-control-rect {
-    position: absolute;
-    top: 0px;
-    left: 0px;
+.flow-control-box div:not(.flow-control-rect) {
+    box-sizing: border-box;
     pointer-events: none;
     user-select: none;
-    background-color: rgba(0,0,255,0.2);
-    border: 1px solid rgba(0,0,255,0.5);
 }
 
 .flow-highlight-item {
     position: absolute;
     background-color: transparent;
-    border: 2px solid rgb(14, 142, 18);
-    pointer-events: none;
-    user-select: none;
+    border: 2px solid rgb(14, 142, 18, 0.7);
+}
+
+.flow-selected-item {
+    position: absolute;
+    background-color: transparent;
+    border: 2px solid rgba(208, 154, 18, 0.7);
+}
+
+.control-rect-drag {
+    position: absolute;
+    background-color: rgba(0, 0, 255, 0.2);
+    border: 1px solid rgba(0, 0, 255, 0.5);
+}
+
+.flow-control-rect {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    box-sizing: border-box;
+    pointer-events: all;
+}
+
+.flow-control-rect.top,
+.flow-control-rect.bottom {
+    cursor: ns-resize;
+}
+
+.flow-control-rect.left,
+.flow-control-rect.right {
+    cursor: ew-resize;
+}
+
+.flow-control-rect>div {
+    position: relative;
+    background-color: rgba(208, 154, 18, 0.7);
 }

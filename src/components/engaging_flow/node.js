@@ -28,6 +28,9 @@ export default function Node(props) {
 
             let pathInfo = null;
 
+            item.right  = item.left + item.width;
+            item.bottom = item.top + item.height;
+
             if(!item.id) return(null);
 
             if(item.action !== undefined) {
@@ -49,6 +52,7 @@ export default function Node(props) {
                     key={index} 
                     item={item}
                     onUpdateHighlightItem={props.onUpdateHighlightItem}
+                    onItemMouseDown={props.onItemMouseDown}
                 />
             );
         })
@@ -99,7 +103,7 @@ export default function Node(props) {
                     const flowNode = getParentElement(event.target, 'flow-node');
                     highlightTarget = flowNode;
                 }
-                
+
                 props.onUpdateHighlightNode(event, highlightTarget);
             }}
         >
