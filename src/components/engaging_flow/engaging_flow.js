@@ -798,6 +798,7 @@ export default function EngagingFlow(props) {
             >
                 <div style={{marginLeft: 20}}><span>Update log</span></div>
                 <ol type="1">
+                    <li>Add the feature to select items by dragging</li>
                     <li>Add 'item select with shiftKey'</li>
                     <li>Add 'item select' feature</li>
                     <li>Add wheel + altKey action</li>
