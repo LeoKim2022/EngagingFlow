@@ -801,7 +801,6 @@ export default function EngagingFlow(props) {
                     <li>Add the feature to select items by dragging</li>
                     <li>Add 'item select with shiftKey'</li>
                     <li>Add 'item select' feature</li>
-                    <li>Add wheel + altKey action</li>
                     <li>Add item or node highlight</li>
                     <li>drawing rect by drag on flow-editor</li>
                     <li>'Flow Config' with useContext()</li>
