@@ -1,16 +1,38 @@
 /**
+ * Determines if a point is inside a bounding rectangle.
+ *
+ * @param {Object} pointA - The point to be checked.
+ * @param {Object} elementB - The bounding rectangle to be checked against.
+ * @returns {boolean} - Returns true if the point is inside the bounding rectangle, false otherwise.
+ */
+function isAPointInBRect(pointA, elementB) {
+    if(
+        pointA.y >= elementB.top &&
+        pointA.x >= elementB.left &&
+        pointA.x <= elementB.right &&
+        pointA.y <= elementB.bottom
+    ) {
+        return(true);
+    } else {
+        return(false);
+    }
+}
+
+
+
+/**
  * Checks if elementA is inside elementB, considering their position and dimensions.
  *
  * @param {Object} elementA - The first element with properties: top, left, right, bottom.
  * @param {Object} elementB - The second element with properties: top, left, right, bottom.
  * @returns {boolean} Returns true if elementA is inside elementB, otherwise returns false.
  */
-function isAInB(elementA, elementB) {
+function isARectInBRect(elementA, elementB) {
     if(
-        elementA.top > elementB.top &&
-        elementA.left > elementB.left &&
-        elementA.right < elementB.right &&
-        elementA.bottom < elementB.bottom
+        elementA.top >= elementB.top &&
+        elementA.left >= elementB.left &&
+        elementA.right <= elementB.right &&
+        elementA.bottom <= elementB.bottom
     ) {
         return(true);
     } else {
@@ -62,4 +84,4 @@ function compareObjectValue(param1, param2) {
     return true; // 모든 비교가 통과한 경우 true 반환
 }
 
-export {isAInB, isEmptyArray, compareObjectValue}
+export {isAPointInBRect, isARectInBRect, isEmptyArray, compareObjectValue}

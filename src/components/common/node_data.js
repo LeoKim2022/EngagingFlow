@@ -11,8 +11,8 @@ const nodeData = [
         items: [
             {
                 id: "a1",
-                top: -5,
-                left: -5,
+                top: 10,
+                left: 10,
                 width: 50,
                 height: 30,
             },

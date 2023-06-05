@@ -111,8 +111,8 @@ export default function Node(props) {
             <div 
                 className='node-content' 
                 style={{
-                    width: node.width, 
-                    height: node.height
+                    width: node.width - DEFINITION.CONTROL_RECT_BORDER_WIDTH * 2, 
+                    height: node.height - DEFINITION.CONTROL_RECT_BORDER_WIDTH * 2
                 }}
             >
                 {itemHtml}

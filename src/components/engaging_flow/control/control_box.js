@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { isAInB, isEmptyArray } from '../../function/common';
+import { isARectInBRect, isEmptyArray } from '../../function/common';
 import {DEFINITION} from '../definition'
 
 import './control.css'
@@ -17,10 +17,10 @@ export default function ControlBox(props) {
     if(props.flowDragMode === DEFINITION.FlowActionMode.rect && props.mouseClientY !== null && props.mouseClientX !== null) {
 
         const scaleValueOrigin = props.editorScaleLev / 10;
-        const rectTop    = Math.min(props.targetDragInfo.clientY, props.mouseClientY);
-        const rectLeft   = Math.min(props.targetDragInfo.clientX, props.mouseClientX);
-        const rectRight  = Math.max(props.targetDragInfo.clientX, props.mouseClientX);
-        const rectBottom = Math.max(props.targetDragInfo.clientY, props.mouseClientY);
+        const rectTop    = Math.min(props.cursorPositionBegin.clientY, props.mouseClientY);
+        const rectLeft   = Math.min(props.cursorPositionBegin.clientX, props.mouseClientX);
+        const rectRight  = Math.max(props.cursorPositionBegin.clientX, props.mouseClientX);
+        const rectBottom = Math.max(props.cursorPositionBegin.clientY, props.mouseClientY);
     
         controlDragStyle = {
             top: (rectTop - props.boxRect.top) / scaleValueOrigin - props.containerPosition.top,
@@ -98,7 +98,7 @@ export default function ControlBox(props) {
 
             const node = nodeData[index];
 
-            if(isAInB(node, controlDragStyle)) {
+            if(isARectInBRect(node, controlDragStyle)) {
                 updateSelectedElements(true, DEFINITION.ElementType.node, node.id, {forceAdd: true});
             } else {
                 updateSelectedElements(true, DEFINITION.ElementType.node, node.id, {forceAdd: false});
@@ -117,7 +117,7 @@ export default function ControlBox(props) {
                         bottom: node.top + item.bottom,
                     }
 
-                    if(isAInB(itemPositionFromFlow, controlDragStyle)) {
+                    if(isARectInBRect(itemPositionFromFlow, controlDragStyle)) {
                         updateSelectedElements(true, DEFINITION.ElementType.item, item.id, {forceAdd: true});
                     } else {
                         updateSelectedElements(true, DEFINITION.ElementType.item, item.id, {forceAdd: false});

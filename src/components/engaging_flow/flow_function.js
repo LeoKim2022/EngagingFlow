@@ -24,6 +24,54 @@ function convertClientCoordToFlow(editorScale, boxRect, containerPosition, clien
 
 
 /**
+ * Converts client coordinates to flow coordinates
+ * @param {number} editorScale - The scale of the editor
+ * @param {Object} beginClientCoord - The starting client coordinates {x, y}
+ * @param {Object} endClientCoord - The ending client coordinates {x, y}
+ * @returns {Object} Flow coordinates {x, y}
+ */
+function convertClientDistanceToFlow(editorScale, beginClientCoord, endClientCoord) {
+    return({
+        x: (endClientCoord.x - beginClientCoord.x) / (editorScale / DEFINITION.FLOW_SCALE_LEVEL_RATE),
+        y: (endClientCoord.y - beginClientCoord.y) / (editorScale / DEFINITION.FLOW_SCALE_LEVEL_RATE),
+    });
+}
+
+
+
+/**
+ * Searches through the flowData array for the first node object containing the specified itemId in its items array
+ * @param {string} itemId - The ID of the item to be found within the flowData
+ * @param {Array} flowData - An array of objects containing node information and their items
+ * @returns {Object|null} Returns the node object containing the item with the specified itemId or null if not found
+ */
+function findNodeByItemId(itemId, flowData) {
+
+    let findNode = null;
+    let isFind = false;
+
+    for(let index = 0, limit = flowData.length; index < limit; ++index) {
+        findNode = flowData[index];
+        if(!isEmptyArray(findNode.items)) {
+            for (let itemIndex = 0, itemLimit = findNode.items.length; itemIndex < itemLimit; ++itemIndex) {
+                const item = findNode.items[itemIndex];
+                if(item.id === itemId) {
+                    isFind = true;
+                    break;
+                }
+            }
+        }
+
+        if(isFind) break;
+    }
+
+    if(isFind) return(JSON.parse(JSON.stringify(findNode)));
+        else return(null);
+}
+
+
+
+/**
  * Finds a node element or an item element within a flow data set.
  *
  * @param {string} elementId - The ID of the element to be searched for.
@@ -40,7 +88,7 @@ function findNodeElement(elementId, elementType, flowData) {
             return(element.id ===  elementId);
         })
 
-        return(findItem);
+        return(JSON.parse(JSON.stringify(findItem)));
 
     } else if(elementType === DEFINITION.ElementType.item) {
 
@@ -68,6 +116,28 @@ function findNodeElement(elementId, elementType, flowData) {
         return(null);
     }
 
+}
+
+
+
+/**
+ * Retrieves the initial data of the selected elements.
+ * @param {Array} selectedElements - An array of selected elements.
+ * @param {Object} flowData - An object containing the flow data.
+ * @returns {Array} An array containing the initial data of the selected elements.
+ */
+function getSelectedItemInitData(selectedElements, flowData) {
+
+    const returnElementData = [];
+
+    selectedElements.forEach((element) => {
+        const elementData = findNodeElement(element.id, element.type, flowData);
+        elementData.type = element.type;
+
+        returnElementData.push(elementData);
+    });
+
+    return(returnElementData);
 }
 
 
@@ -161,8 +231,11 @@ function getParentElement(element, className) {
 
 export {
     convertClientCoordToFlow, 
+    convertClientDistanceToFlow,
+    findNodeByItemId,
     findNodeElement, 
-    getItemRectFromFlow, 
     getGridPosition, 
-    getParentElement
+    getItemRectFromFlow, 
+    getSelectedItemInitData,
+    getParentElement,
 }

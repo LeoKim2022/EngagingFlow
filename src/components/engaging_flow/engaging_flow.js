@@ -1,21 +1,37 @@
 import React, { useState, useRef, useEffect, useCallback, useReducer } from 'react';
 
+// DEFINITION & function
 import {DEFINITION} from './definition'
-import {isEmptyArray} from '../function/common'
+import {isAPointInBRect, isEmptyArray} from '../function/common'
 import {connectPath} from '../function/connect_path'
 import {nodeData} from '../common/node_data'
-import {findNodeElement, getParentElement, getGridPosition} from './flow_function'
+import {
+    convertClientDistanceToFlow, 
+    findNodeByItemId,
+    findNodeElement, 
+    getParentElement, 
+    getSelectedItemInitData, 
+    getGridPosition
+} from './flow_function'
+import {selectedItemRect} from './control/control_function'
+import {convertClientCoordToFlow} from './flow_function'
 
+// Context
 import {GlobalConfigProvider} from '../context_global_config'
 
+// CSS
 import './engaging_flow.css';
+
+// Component parts
 import Node from './node'
 import Connection from './connection'
 import FlowScrollBar from './flow_scrollbar'
 import * as PointerHandle from './node_pointer_handle'
 import ConfigPanel from '../config_panel';
-
 import ControlBox from './control/control_box';
+
+// Node elements
+// import * as NodeElement from '../../class/element'
 
 export default function EngagingFlow(props) {
 
@@ -28,7 +44,7 @@ export default function EngagingFlow(props) {
     // const [dragTargetNode, setDragTargetNode] = useState(null);
     const [flowDragMode, setFlowDragMode] = useState(DEFINITION.FlowActionMode.none);
 
-    const [targetDragInfo, setTargetDragInfo] = useState({top: 0, left: 0});
+    const [cursorPositionBegin, setCursorPositionBegin] = useState({clientX: 0, clientY: 0, dragTarget: []});
     const [editorScaleLev, setEditorScaleLev] = useState(11);
 
     const [containerPosition, setContainerPosition] = useState({ top: 0, left: 0});
@@ -36,7 +52,7 @@ export default function EngagingFlow(props) {
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const [flowData, setFlowData] = useState(nodeData);
+    const [flowData, setFlowData] = useReducer(flowDataReducer, nodeData);
 
     const [outPointerDrag, setOutPointerDrag] = useState(null);
 
@@ -65,19 +81,38 @@ export default function EngagingFlow(props) {
                 if(spaceKeyHold) {
                     initFlowDragMode(event);
                 } else {
-                    setFlowDragMode(DEFINITION.FlowActionMode.rect);
-                    setTargetDragInfo({
-                        clientX: event.clientX,
-                        clientY: event.clientY,
-                    });
 
-                    setSelectedElements([]);
+                    if(isClientCoordInSelectedRect({x: event.clientX, y: event.clientY})) {
+
+                        setFlowDragMode(DEFINITION.FlowActionMode.selected);
+                        const selectedData = getSelectedItemInitData(selectedElements, flowData);
+                        setCursorPositionBegin({
+                            clientX: event.clientX,
+                            clientY: event.clientY,
+                            dragTarget: selectedData,
+                        });
+
+                    } else {
+
+                        setFlowDragMode(DEFINITION.FlowActionMode.rect);
+                        setCursorPositionBegin({
+                            clientX: event.clientX,
+                            clientY: event.clientY,
+                            wasDrag: false,
+                        });
+    
+                        setSelectedElements([]);
+
+                    }
+
                 }
 
                 break;
             }
         
             case DEFINITION.MouseButtons.right: {
+                // const imageElement = new NodeElement.nodeElementImage();
+                // imageElement.method1();
                 break;
             }
         
@@ -144,17 +179,60 @@ export default function EngagingFlow(props) {
 
                     event.stopPropagation();
 
-                    const itemId = event.target.getAttribute("id");
-                    const findItem = findNodeElement(itemId, DEFINITION.ElementType.item, flowData);
+                    if(event.shiftKey) {
+                        const itemId = event.target.getAttribute("id");
+                        const findItem = findNodeElement(itemId, DEFINITION.ElementType.item, flowData);
+    
+                        if(findItem) {
+                            setFlowDragMode(DEFINITION.FlowActionMode.selected);
+    
+                            const newElements = updateSelectedElements(event.shiftKey, DEFINITION.ElementType.item, findItem.id);
+    
+                            const selectedData = getSelectedItemInitData(newElements, flowData);
+                            
+                            setCursorPositionBegin({
+                                clientX: event.clientX,
+                                clientY: event.clientY,
+                                dragTarget: selectedData,
+                            });
+                        }
+                    } else {
 
-                    if(findItem) {
-
-                        updateSelectedElements(event.shiftKey, DEFINITION.ElementType.item, findItem.id);
-
-                        setTargetDragInfo({
-                            clientX: event.clientX,
-                            clientY: event.clientY,
+                        const itemId = event.target.getAttribute("id");
+                        // item이 포함된 node가 drag 대상일 경우 무시.
+                        const selectedElementIndex = selectedElements.findIndex((element) => {
+                            return(element.id === itemId);
                         });
+
+                        if(selectedElementIndex < 0) {
+                            const findItem = findNodeElement(itemId, DEFINITION.ElementType.item, flowData);
+        
+                            if(findItem) {
+                                setFlowDragMode(DEFINITION.FlowActionMode.selected);
+        
+                                const newElements = updateSelectedElements(event.shiftKey, DEFINITION.ElementType.item, findItem.id);
+        
+                                const selectedData = getSelectedItemInitData(newElements, flowData);
+                                
+                                setCursorPositionBegin({
+                                    clientX: event.clientX,
+                                    clientY: event.clientY,
+                                    dragTarget: selectedData,
+                                });
+                            }
+                        } else {
+                            if(isClientCoordInSelectedRect({x: event.clientX, y: event.clientY})) {
+
+                                setFlowDragMode(DEFINITION.FlowActionMode.selected);
+                                const selectedData = getSelectedItemInitData(selectedElements, flowData);
+                                setCursorPositionBegin({
+                                    clientX: event.clientX,
+                                    clientY: event.clientY,
+                                    dragTarget: selectedData,
+                                });
+        
+                            }
+                        }
                     }
                 }
                 break;
@@ -182,21 +260,60 @@ export default function EngagingFlow(props) {
     function handleMouseDownOnNode(event) {
         switch(event.buttons) {
             case DEFINITION.MouseButtons.left: {
+                event.preventDefault();
                 if(spaceKeyHold) {
                     initFlowDragMode(event);
                 } else {
-                    let targetNode = getParentElement(event.target, 'flow-node');
-                    const findNode = flowData.find((element) => { return(element.id === targetNode.getAttribute('id')) });
 
-                    if(findNode) {
+                    if(event.shiftKey) {
+                        
+                        let targetNode = getParentElement(event.target, 'flow-node');
+                        const findNode = flowData.find((element) => { return(element.id === targetNode.getAttribute('id')) });
+    
+                        if(findNode) {
+                            setFlowDragMode(DEFINITION.FlowActionMode.selected);
+    
+                            const newElements = updateSelectedElements(event.shiftKey, DEFINITION.ElementType.node, findNode.id);
+    
+                            const selectedData = getSelectedItemInitData(newElements, flowData);
+    
+                            setCursorPositionBegin({
+                                clientX: event.clientX,
+                                clientY: event.clientY,
+                                dragTarget: selectedData,
+                            });
 
-                        updateSelectedElements(event.shiftKey, DEFINITION.ElementType.node, findNode.id);
+                        }
+                    } else {
+                        if(isClientCoordInSelectedRect({x: event.clientX, y: event.clientY})) {
 
-                        setTargetDragInfo({
-                            clientX: event.clientX,
-                            clientY: event.clientY,
-                        });
-
+                            setFlowDragMode(DEFINITION.FlowActionMode.selected);
+                            const selectedData = getSelectedItemInitData(selectedElements, flowData);
+                            setCursorPositionBegin({
+                                clientX: event.clientX,
+                                clientY: event.clientY,
+                                dragTarget: selectedData,
+                            });
+    
+                        } else {
+                            let targetNode = getParentElement(event.target, 'flow-node');
+                            const findNode = flowData.find((element) => { return(element.id === targetNode.getAttribute('id')) });
+        
+                            if(findNode) {
+                                setFlowDragMode(DEFINITION.FlowActionMode.selected);
+        
+                                const newElements = updateSelectedElements(event.shiftKey, DEFINITION.ElementType.node, findNode.id);
+        
+                                const selectedData = getSelectedItemInitData(newElements, flowData);
+        
+                                setCursorPositionBegin({
+                                    clientX: event.clientX,
+                                    clientY: event.clientY,
+                                    dragTarget: selectedData,
+                                });
+        
+                            }
+                        }
                     }
                 }
                 break;
@@ -262,34 +379,69 @@ export default function EngagingFlow(props) {
     function handleMouseMove(event) {
 
         if (flowDragMode === DEFINITION.FlowActionMode.selected && selectedElements.length) {
-            // const copyFlowData = JSON.parse(JSON.stringify(flowData));
 
-            // const findItem = copyFlowData.find((element) => { return(element.id === dragTargetNode.getAttribute('id')) });
+            // client 좌표의 이동량을 flow 이동량으로 변환하고
+            const dragDistance = convertClientDistanceToFlow(editorScaleLev, {
+                x: cursorPositionBegin.clientX,
+                y: cursorPositionBegin.clientY,
+            }, {
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            // 선택된 항목을 모두 이동시킨다. 단,
+            // element만 선택된 경우는 element를 이동 시키고,
+            // element가 포함된 node가 선택되어 있으면 node를 이동시킨다.
+            // node item은 node좌표에 대한 상대좌표를 사용하기 때문에 모두 이동시킬 경우 의도한 바라고 보기 어렵다.
+            const copyFlowData = JSON.parse(JSON.stringify(flowData));
+            const dragTarget = cursorPositionBegin.dragTarget;
+            dragTarget.forEach((dragItem) => {
+                if(dragItem.type === DEFINITION.ElementType.node) {
+
+                    const findNode = copyFlowData.find((node) => {
+                        return(node.id === dragItem.id);
+                    });
+
+                    if(copyFlowData) {
+                        findNode.top  = Math.round((dragItem.top  + dragDistance.y) / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
+                        findNode.left = Math.round((dragItem.left + dragDistance.x) / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
+                    }
+                } else {
+                    const parentNode = findNodeByItemId(dragItem.id, flowData);
+                    if(!parentNode) return;
+                    
+                    // item이 포함된 node가 drag 대상일 경우 무시.
+                    const selectedElementIndex = selectedElements.findIndex((element) => {
+                        return(element.id === parentNode.id);
+                    });
+
+                    // selectedElements에 node가 포함되어 있지 않을때만 좌표 수정
+                    if(selectedElementIndex < 0) {
+                        
+                        const findNode = copyFlowData.find((node) => {
+                            return(node.id === parentNode.id);
+                        });
+
+                        if(isEmptyArray(findNode.items)) return;
     
-            // if(findItem) {
-            //     const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
+                        const findItem = findNode.items.find((item) => {
+                            return(item.id === dragItem.id);
+                        });
 
-            //     let newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
-            //     let newLeft = (event.clientX - targetDragInfo.clientX) / scaleOrigin + targetDragInfo.targetLeft;
-
-            //     newTop = Math.round(newTop / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
-            //     newLeft = Math.round(newLeft / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
-
-            //     if(
-            //         findItem.top !== newTop ||
-            //         findItem.left !== newLeft
-            //     ) {
-            //         findItem.top  = newTop;
-            //         findItem.left = newLeft;
-     
-            //         setFlowData(copyFlowData);
-            //     }
-            // }
+                        if(findItem) {
+                            findItem.top  = dragItem.top  + dragDistance.y;
+                            findItem.left = dragItem.left  + dragDistance.x;
+                        }
+                    }
+                }
+            });
+            
+            setFlowData(copyFlowData);
         } else if(flowDragMode === DEFINITION.FlowActionMode.flow) {
             const scaleOrigin = editorScaleLev / DEFINITION.FLOW_SCALE_LEVEL_RATE;
 
-            const newTop  = (event.clientY - targetDragInfo.clientY) / scaleOrigin + targetDragInfo.targetTop;
-            const newLeft = (event.clientX - targetDragInfo.clientX) / scaleOrigin + targetDragInfo.targetLeft;
+            const newTop  = (event.clientY - cursorPositionBegin.clientY) / scaleOrigin + cursorPositionBegin.flowTop;
+            const newLeft = (event.clientX - cursorPositionBegin.clientX) / scaleOrigin + cursorPositionBegin.flowLeft;
 
             setContainerPosition({
                 top : newTop,
@@ -401,10 +553,20 @@ export default function EngagingFlow(props) {
      */
     function finishDrag() {
         setFlowDragMode(DEFINITION.FlowActionMode.none);
-        // setDragTargetNode(null);
+        setCursorPositionBegin({clientX: 0, clientY: 0, dragTarget: []});
         setOutPointerDrag(null);
         setMouseClientX(null);
         setMouseClientY(null);
+    }
+
+
+
+    /**
+     * 
+     */
+    function flowDataReducer(state, action) {
+        if(JSON.stringify(state) === JSON.stringify(action)) return(state);
+            else return(action);    
     }
 
 
@@ -416,12 +578,39 @@ export default function EngagingFlow(props) {
     function initFlowDragMode(mouseEvent) {
         setFlowDragMode(DEFINITION.FlowActionMode.flow);
 
-        setTargetDragInfo({
+        setCursorPositionBegin({
             clientX: mouseEvent.clientX,
             clientY: mouseEvent.clientY,
-            targetTop : containerPosition.top,
-            targetLeft: containerPosition.left,
+            flowTop : containerPosition.top,
+            flowLeft: containerPosition.left,
         });
+    }
+
+
+
+    /**
+     * 
+     */
+    function isClientCoordInSelectedRect(clientCoord) {
+        const rectResult = selectedItemRect({
+            selectedElements : selectedElements,
+            nodeData : flowData,
+        });
+
+        const flowCoord = convertClientCoordToFlow(editorScaleLev, props.boxRect, containerPosition, clientCoord);
+
+        return(rectResult.selectedRect && isAPointInBRect(flowCoord, rectResult.selectedRect));
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
+    function selectedElementsReducer(state, action) {
+        if(JSON.stringify(state) === JSON.stringify(action)) return(state);
+            else return(action);
     }
 
 
@@ -479,18 +668,9 @@ export default function EngagingFlow(props) {
      * 
      * @param  
      */
-    function selectedElementsReducer(state, action) {
-        if(JSON.stringify(state) === JSON.stringify(action)) return(state);
-            else return(action);
-    }
-
-
-
-    /**
-     * 
-     * @param  
-     */
     function updateSelectedElements(shiftKey, elementType, elementId, option = {}) {
+
+        let newSelectedElements = null;
 
         if(shiftKey) {
 
@@ -498,45 +678,50 @@ export default function EngagingFlow(props) {
                 return(element.id === elementId && element.type === elementType);
             });
 
-            const copySelectedElements = JSON.parse(JSON.stringify(selectedElements));
+            newSelectedElements = JSON.parse(JSON.stringify(selectedElements));
 
             if(option.forceAdd !== undefined) {
                 if(option.forceAdd) {
                     if(findIndex < 0) {
-                        copySelectedElements.push({
+                        newSelectedElements.push({
                             id: elementId,
                             type: elementType,
                         });
     
-                        setSelectedElements(copySelectedElements);
+                        setSelectedElements(newSelectedElements);
                     }
                 } else {
                     if(findIndex > -1) {
-                        copySelectedElements.splice(findIndex, 1);
-                        setSelectedElements(copySelectedElements);
+                        newSelectedElements.splice(findIndex, 1);
+                        setSelectedElements(newSelectedElements);
                     }
                 }
             } else {
                 if(findIndex > -1) {
-                    copySelectedElements.splice(findIndex, 1);
+                    newSelectedElements.splice(findIndex, 1);
                 } else {
-                    copySelectedElements.push({
+                    newSelectedElements.push({
                         id: elementId,
                         type: elementType,
                     });
                 }                
-                setSelectedElements(copySelectedElements);
+                setSelectedElements(newSelectedElements);
             }
 
         } else {
 
-            setSelectedElements([{
+            newSelectedElements = [{
                 id: elementId,
                 type: elementType,
-            }]);
+            }]
 
+            setSelectedElements(newSelectedElements);
         }
 
+        // TODO: update elementInterface
+
+
+        return(newSelectedElements);
     }
 
 
@@ -728,7 +913,7 @@ export default function EngagingFlow(props) {
                     </div>
 
                     <ControlBox 
-                        targetDragInfo={targetDragInfo}
+                        cursorPositionBegin={cursorPositionBegin}
                         mouseClientX={mouseClientX}
                         mouseClientY={mouseClientY}
                         nodeData={flowData} 
@@ -798,12 +983,11 @@ export default function EngagingFlow(props) {
             >
                 <div style={{marginLeft: 20}}><span> Update log </span></div>
                 <ol type="1">
+                    <li>All selected element are moved by dragging</li>
                     <li>Add the feature to select items by dragging</li>
                     <li>Add 'item select with shiftKey'</li>
                     <li>Add 'item select' feature</li>
                     <li>Add item or node highlight</li>
-                    <li>drawing rect by drag on flow-editor</li>
-                    <li>'Flow Config' with useContext()</li>
                 </ol>
             </div>
         </GlobalConfigProvider>

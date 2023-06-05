@@ -4,10 +4,13 @@
     left: 0px;
 }
 
+.flow-control-box div {
+    user-select: none;
+}
+
 .flow-control-box div:not(.flow-control-rect) {
     box-sizing: border-box;
     pointer-events: none;
-    user-select: none;
 }
 
 .flow-highlight-item {
@@ -19,12 +22,12 @@
 .flow-selected-item {
     position: absolute;
     background-color: transparent;
-    border: 2px solid rgba(208, 154, 18, 0.7);
+    border: 2px solid rgba(208, 154, 18, 0.5);
 }
 
 .control-rect-drag {
     position: absolute;
-    background-color: rgba(0, 0, 255, 0.2);
+    background-color: rgba(0, 0, 255, 0.1);
     border: 1px solid rgba(0, 0, 255, 0.5);
 }
 

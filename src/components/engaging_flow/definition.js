@@ -21,11 +21,12 @@ const DEFINITION = Object.freeze({
     MAXIMUM_PATH_POINTER_COUNT: 7,
     
     FlowActionMode : Object.freeze({
-        none:     0,
-        flow:     100,
-        selected: 200,
-        pointer:  300,
-        rect:     400,
+        none:       0,
+        flow:       100,
+        selected:   200,
+        pointer:    300,
+        rect:       400,
+        rectResize: 500,
     }),
     
     NodePointerSize : Object.freeze({
@@ -50,8 +51,11 @@ const DEFINITION = Object.freeze({
     }),
     
     ElementType : Object.freeze({
-        node: 100,
-        item: 200,
+        node : 100,
+        item : 200,
+    }),
+    
+    NodeElementType : Object.freeze({
     }),
     
     KeyCode : Object.freeze({
