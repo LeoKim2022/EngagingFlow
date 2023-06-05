@@ -58,7 +58,7 @@
     overflow: hidden;    
 }
 
-.item-panel {
+.node-item {
     position: absolute;
     border: 1px solid gray;
 }

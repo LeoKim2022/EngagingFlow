@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import {DEFINITION} from './definition'
 import {compareObjectValue} from '../function/common'
 
+import {useFlowData} from '../context_flow_data'
+
 export default function FlowScrollBar(props) {
 
+    const [flowData, setFlowData] = useFlowData();
 
-    const nodeData          = props.nodeData;
     const containerPosition = props.containerPosition;
     const boxRect           = props.boxRect;
     const editorScaleLev    = props.editorScaleLev;
@@ -43,7 +45,7 @@ export default function FlowScrollBar(props) {
             let maxNodeLoc = Number.MIN_SAFE_INTEGER;
             // let maxNodeId = null;
         
-            nodeData.forEach((element) => {
+            flowData.forEach((element) => {
                 const minValue = element[minAttrName]; 
                 if(minNodeLoc > minValue) {
                     // minNodeId = element.id;
@@ -100,7 +102,7 @@ export default function FlowScrollBar(props) {
                 setScrollDisplay(false);
             }
         }
-    }, [nodeData, containerPosition, boxRect, editorScaleLev, scrollType, scrollDisplay, scrollBarStatus]);
+    }, [flowData, containerPosition, boxRect, editorScaleLev, scrollType, scrollDisplay, scrollBarStatus]);
     
     return (
         <div 

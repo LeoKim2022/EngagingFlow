@@ -6,9 +6,11 @@ import './control.css'
 
 import SelectedElements from './selected_elements'
 
-export default function ControlBox(props) {
+import {useFlowData} from '../../context_flow_data'
 
-    const nodeData = props.nodeData;
+export default function ControlBox(props) {
+    const [flowData, ] = useFlowData();
+
     const updateSelectedElements = props.updateSelectedElements;
 
     let controlDragStyle = null;
@@ -42,7 +44,7 @@ export default function ControlBox(props) {
 
             if(selectedItemIndex < 0) {
                 let targetItem = null;
-                const targetNode = nodeData.find((node) => {
+                const targetNode = flowData.find((node) => {
                     if(Array.isArray(node.items)) {
                         targetItem = node.items.find((item) => {
                             return(item.id === props.highlightItemId);
@@ -72,7 +74,7 @@ export default function ControlBox(props) {
             });
 
             if(selectedNodeIndex < 0) {
-                const targetNode = nodeData.find((node) => {
+                const targetNode = flowData.find((node) => {
                     return(node.id === props.highlightNodeId);
                 });
                 
@@ -94,9 +96,9 @@ export default function ControlBox(props) {
 
         // Engaging flow 특성상 완전히 포함되는 element만 선택하도록 조정합니다.
         // 조금이라도 겹치는 영역으로 선택하게 되면, element만 선택할수 있는 방법이 없다.
-        for(let index = 0, limit = nodeData.length; index < limit; ++index) {
+        for(let index = 0, limit = flowData.length; index < limit; ++index) {
 
-            const node = nodeData[index];
+            const node = flowData[index];
 
             if(isARectInBRect(node, controlDragStyle)) {
                 updateSelectedElements(true, DEFINITION.ElementType.node, node.id, {forceAdd: true});
@@ -127,7 +129,7 @@ export default function ControlBox(props) {
             }
 
         }
-    }, [controlDragStyle, nodeData, updateSelectedElements]);
+    }, [controlDragStyle, flowData, updateSelectedElements]);
 
     return(
         <div 
@@ -151,7 +153,7 @@ export default function ControlBox(props) {
                 /> : null
             }
 
-            <SelectedElements selectedElements={props.selectedElements} nodeData={nodeData}/>            
+            <SelectedElements selectedElements={props.selectedElements}/>
 
         </div>
     )

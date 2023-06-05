@@ -5,7 +5,7 @@ export default function ItemPanel(props) {
     
     return (
         <div 
-            className="item-panel" 
+            className="node-item" 
             id={item.id}
             style={{
                 top: item.top, 
@@ -15,19 +15,19 @@ export default function ItemPanel(props) {
             }}
 
             onMouseOver={(event) => {
-                if(event.target.classList.contains('item-panel')) {
+                if(event.target.classList.contains('node-item')) {
                     props.onUpdateHighlightItem(event);
                 }
             }}
 
             onMouseOut={(event) => {
-                if(event.target.classList.contains('item-panel')) {
+                if(event.target.classList.contains('node-item')) {
                     props.onUpdateHighlightItem(event);
                 }
             }}
 
             onMouseDown={(event) => {
-                if(event.target.classList.contains('item-panel')) {
+                if(event.target.classList.contains('node-item')) {
                     props.onItemMouseDown(event);
                 }
             }}

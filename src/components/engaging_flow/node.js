@@ -10,14 +10,15 @@ import {isEmptyArray} from '../function/common'
 import {nodePointerPentagon, nodePointerTriangle} from './node_pointer_polygon'
 import {connectPath} from '../function/connect_path'
 
+import {useFlowData} from '../context_flow_data'
 import {useGlobalConfig} from '../context_global_config'
 
-export default function Node(props) {
 
+export default function Node(props) {
+    const [flowData, ] = useFlowData();
     const [globalConfig, ] = useGlobalConfig();
 
     const svgPolygon = nodePointerPentagon();
-    const childData = props.childData;
     const node = props.node;
 
     let itemHtml
@@ -34,7 +35,7 @@ export default function Node(props) {
             if(!item.id) return(null);
 
             if(item.action !== undefined) {
-                const targetNode = childData.find((element) => { return(element.id === item.action.id) });
+                const targetNode = flowData.find((element) => { return(element.id === item.action.id) });
 
                 pathInfo = connectPath({
                     toNode: targetNode,

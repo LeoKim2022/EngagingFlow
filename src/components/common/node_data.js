@@ -27,9 +27,6 @@ const nodeData = [
                 }
             },
         ],
-        // action: {
-        //     id: "bbb",
-        // }
     },
     {
         id: 'bbb',
@@ -101,7 +98,7 @@ const nodeData = [
             },
             {
                 top: 10,
-                left: 65,
+                left: 60,
                 width: 20,
                 height: 15,
             },

@@ -3,6 +3,10 @@ import './App.css'
 
 import EngagingFlow from './components/engaging_flow/engaging_flow'
 
+// Context
+import {GlobalConfigProvider} from './components/context_global_config'
+import {FlowDataProvider} from './components/context_flow_data'
+
 /************************ begin: firebase hosting config **********************/  
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
@@ -50,7 +54,7 @@ function App() {
         });
     }, [flowRect]);
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize);    
 
     useEffect(() => {
         if(flowBoxRef.current) {
@@ -64,22 +68,32 @@ function App() {
     }, []);
 
     return (
+
         <div 
             className="App"
         >
-            <div 
-                ref={flowBoxRef} 
-                className='engaging-flow-box' 
-                style={{
-                    width: '1600px', 
-                    height: '1200px', 
-                    position: 'absolute', 
-                    top: '50px', 
-                    left: '50px'
-                }}
-            >
-                <EngagingFlow boxRect={flowRect}/>
-            </div>
+            <GlobalConfigProvider>
+                <FlowDataProvider>
+                    <div 
+                        ref={flowBoxRef} 
+                        className='engaging-flow-box' 
+                        style={{
+                            width: '1600px', 
+                            height: '1200px', 
+                            position: 'absolute', 
+                            top: '50px', 
+                            left: '50px'
+                        }}
+
+                        onContextMenu={(event) => {
+                            event.preventDefault();
+                            return(false);
+                        }}
+                    >
+                        <EngagingFlow boxRect={flowRect}/>
+                    </div>
+                    </FlowDataProvider>
+            </GlobalConfigProvider>
         </div>
     )
 }

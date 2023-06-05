@@ -16,9 +16,6 @@ import {
 import {selectedItemRect} from './control/control_function'
 import {convertClientCoordToFlow} from './flow_function'
 
-// Context
-import {GlobalConfigProvider} from '../context_global_config'
-
 // CSS
 import './engaging_flow.css';
 
@@ -30,8 +27,10 @@ import * as PointerHandle from './node_pointer_handle'
 import ConfigPanel from '../config_panel';
 import ControlBox from './control/control_box';
 
+// Context
+import {useFlowData} from '../context_flow_data'
 // Node elements
-// import * as NodeElement from '../../class/element'
+
 
 export default function EngagingFlow(props) {
 
@@ -52,7 +51,7 @@ export default function EngagingFlow(props) {
 
     const [spaceKeyHold, setSpaceKeyHold] = useState(false);
 
-    const [flowData, setFlowData] = useReducer(flowDataReducer, nodeData);
+    const [flowData, setFlowData] = useFlowData();
 
     const [outPointerDrag, setOutPointerDrag] = useState(null);
 
@@ -111,6 +110,8 @@ export default function EngagingFlow(props) {
             }
         
             case DEFINITION.MouseButtons.right: {
+
+                
                 // const imageElement = new NodeElement.nodeElementImage();
                 // imageElement.method1();
                 break;
@@ -175,7 +176,9 @@ export default function EngagingFlow(props) {
     function handleMouseDownOnItem(event) {
         switch(event.buttons) {
             case DEFINITION.MouseButtons.left: {
-                if(!spaceKeyHold && event.target.classList.contains('item-panel')) {
+                event.preventDefault();
+
+                if(!spaceKeyHold && event.target.classList.contains('node-item')) {
 
                     event.stopPropagation();
 
@@ -184,12 +187,10 @@ export default function EngagingFlow(props) {
                         const findItem = findNodeElement(itemId, DEFINITION.ElementType.item, flowData);
     
                         if(findItem) {
-                            setFlowDragMode(DEFINITION.FlowActionMode.selected);
-    
                             const newElements = updateSelectedElements(event.shiftKey, DEFINITION.ElementType.item, findItem.id);
-    
-                            const selectedData = getSelectedItemInitData(newElements, flowData);
                             
+                            setFlowDragMode(DEFINITION.FlowActionMode.selected);
+                            const selectedData = getSelectedItemInitData(newElements, flowData);
                             setCursorPositionBegin({
                                 clientX: event.clientX,
                                 clientY: event.clientY,
@@ -261,6 +262,7 @@ export default function EngagingFlow(props) {
         switch(event.buttons) {
             case DEFINITION.MouseButtons.left: {
                 event.preventDefault();
+                
                 if(spaceKeyHold) {
                     initFlowDragMode(event);
                 } else {
@@ -563,16 +565,6 @@ export default function EngagingFlow(props) {
 
     /**
      * 
-     */
-    function flowDataReducer(state, action) {
-        if(JSON.stringify(state) === JSON.stringify(action)) return(state);
-            else return(action);    
-    }
-
-
-
-    /**
-     * 
      * @param mouseEvent 
      */
     function initFlowDragMode(mouseEvent) {
@@ -745,6 +737,13 @@ export default function EngagingFlow(props) {
         });
     }, [updateGridPosition, handleWheel]);
 
+    useEffect(() => {
+
+        return(() => {
+            setFlowData(nodeData);
+        });
+    }, [setFlowData]);
+
 
     /**********************************************************************/
     // make html parts
@@ -760,7 +759,6 @@ export default function EngagingFlow(props) {
                 width={node.width} 
                 height={node.height} 
                 node={node}
-                childData={flowData}
                 containerPosition={containerPosition}
 
                 onNodeMouseDown={handleMouseDownOnNode}
@@ -859,113 +857,110 @@ export default function EngagingFlow(props) {
     }
 
     return(
-        <GlobalConfigProvider>
+
+        <div 
+            id={DEFINITION.FLOW_EDITOR_ID}
+            className='engaging-editor' 
+
+            ref={engagingEditorRef}
+
+            onMouseDown={handleFlowMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+
+            tabIndex={0}
+        >
             <div 
-                id={DEFINITION.FLOW_EDITOR_ID}
-                className='engaging-editor' 
-
-                ref={engagingEditorRef}
-
-                onMouseDown={handleFlowMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-
-                onKeyDown={handleKeyDown}
-                onKeyUp={handleKeyUp}
-
-                tabIndex={0}
+                className='engaging-grid' 
+                style={{
+                    top:`${gridPosition.top}px`,
+                    left:`${gridPosition.left}px`,
+                    width: `${parentWidthWithGap * 3}px`,
+                    height: `${parentHeightWithGap * 3}px`,
+                    transform: `scale(${editorScaleLev / 10})`,
+                    backgroundSize: `${DEFINITION.FLOW_GRID_SIZE}px ${DEFINITION.FLOW_GRID_SIZE}px`
+                }}
+            />
+                
+            <div 
+                className='engaging-flow' 
+                style={{
+                    transform: `scale(${editorScaleLev / 10})`,
+                }}
             >
                 <div 
-                    className='engaging-grid' 
+                    className={`flow-container ${containerDragClass}`} 
                     style={{
-                        top:`${gridPosition.top}px`,
-                        left:`${gridPosition.left}px`,
-                        width: `${parentWidthWithGap * 3}px`,
-                        height: `${parentHeightWithGap * 3}px`,
-                        transform: `scale(${editorScaleLev / 10})`,
-                        backgroundSize: `${DEFINITION.FLOW_GRID_SIZE}px ${DEFINITION.FLOW_GRID_SIZE}px`
-                    }}
-                />
-                
-                <div 
-                    className='engaging-flow' 
-                    style={{
-                        transform: `scale(${editorScaleLev / 10})`,
-                    }}
+                        top: containerPosition.top, 
+                        left: containerPosition.left
+                    }} 
                 >
-                    <div 
-                        className={`flow-container ${containerDragClass}`} 
-                        style={{
-                            top: containerPosition.top, 
-                            left: containerPosition.left
-                        }} 
-                    >
-                        {nodeHtml}
+                    {nodeHtml}
 
-                        <svg className='node-connects'>
-                            {connectionHtml}
-                            <Connection 
-                                pathInfo={outPointerDrag?.pathInfo}
-                            />
-                        </svg>
-                    </div>
-
-                    <ControlBox 
-                        cursorPositionBegin={cursorPositionBegin}
-                        mouseClientX={mouseClientX}
-                        mouseClientY={mouseClientY}
-                        nodeData={flowData} 
-                        editorScaleLev={editorScaleLev}
-                        boxRect={props.boxRect}
-                        containerPosition={containerPosition}
-                        flowDragMode={flowDragMode}
-                        highlightNodeId={highlightNodeId}
-                        highlightItemId={highlightItemId}
-                        selectedElements={selectedElements}
-                        updateSelectedElements={updateSelectedElements}
-                    />
+                    <svg className='node-connects'>
+                        {connectionHtml}
+                        <Connection 
+                            pathInfo={outPointerDrag?.pathInfo}
+                        />
+                    </svg>
                 </div>
 
-
-                <FlowScrollBar 
-                    nodeData={flowData} 
-                    type={DEFINITION.ScrollBarType.horizontal}
-                    containerPosition={containerPosition}
-                    boxRect={props.boxRect}
+                <ControlBox 
+                    cursorPositionBegin={cursorPositionBegin}
+                    mouseClientX={mouseClientX}
+                    mouseClientY={mouseClientY}
                     editorScaleLev={editorScaleLev}
-                />
-
-                <FlowScrollBar 
-                    nodeData={flowData} 
-                    type={DEFINITION.ScrollBarType.vertical}
-                    containerPosition={containerPosition}
                     boxRect={props.boxRect}
-                    editorScaleLev={editorScaleLev}
+                    containerPosition={containerPosition}
+                    flowDragMode={flowDragMode}
+                    highlightNodeId={highlightNodeId}
+                    highlightItemId={highlightItemId}
+                    selectedElements={selectedElements}
+                    updateSelectedElements={updateSelectedElements}
                 />
-
-                {/* <div 
-                    style={{
-                        position: 'absolute',
-                        width: 'fit-content',
-                        height: 'fit-content',
-                        bottom: 20,
-                        right: 20,
-                        padding: `15px 25px`,
-                        borderRadius: 10,
-                        backgroundColor: 'gray',
-                        color: 'white',
-                        cursor: 'pointer',
-                    }}
-
-                    onClick={() => {
-                        setFlowData(nodeData);
-                    }}
-                >
-                    <span>Load Data</span>
-                </div> */}
             </div>
+
+
+            <FlowScrollBar 
+                type={DEFINITION.ScrollBarType.horizontal}
+                containerPosition={containerPosition}
+                boxRect={props.boxRect}
+                editorScaleLev={editorScaleLev}
+            />
+
+            <FlowScrollBar 
+                type={DEFINITION.ScrollBarType.vertical}
+                containerPosition={containerPosition}
+                boxRect={props.boxRect}
+                editorScaleLev={editorScaleLev}
+            />
+
+            {/* <div 
+                style={{
+                    position: 'absolute',
+                    width: 'fit-content',
+                    height: 'fit-content',
+                    bottom: 20,
+                    right: 20,
+                    padding: `15px 25px`,
+                    borderRadius: 10,
+                    backgroundColor: 'gray',
+                    color: 'white',
+                    cursor: 'pointer',
+                }}
+
+                onClick={() => {
+                    setFlowData(nodeData);
+                }}
+            >
+                <span>Load Data</span>
+            </div> */}
+
             <ConfigPanel />
 
             <div
@@ -990,7 +985,7 @@ export default function EngagingFlow(props) {
                     <li>Add item or node highlight</li>
                 </ol>
             </div>
-        </GlobalConfigProvider>
+        </div>        
     )
 }
 

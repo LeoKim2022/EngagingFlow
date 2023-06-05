@@ -10,6 +10,7 @@ const DEFINITION = Object.freeze({
     FLOW_SCALE_LEVEL_RATE : 10,
 
     FLOW_GRID_SIZE : 40,
+    NODE_ELEMENT_GRID_SIZE : 10,
 
     CONTROL_RECT_BORDER_WIDTH : 2,
     CONTROL_RECT_BORDER_MARGIN: 8,
@@ -56,6 +57,11 @@ const DEFINITION = Object.freeze({
     }),
     
     NodeElementType : Object.freeze({
+        text  : 100,
+        image : 200,
+        panel : 300,
+        button: 400,
+        input : 500,
     }),
     
     KeyCode : Object.freeze({

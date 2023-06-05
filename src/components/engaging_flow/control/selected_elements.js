@@ -3,14 +3,17 @@ import {selectedItemRect} from './control_function'
 
 import ControlRect from './control_rect'
 
+import {useFlowData} from '../../context_flow_data'
+
 export default function SelectedElements(props) {
+    const [flowData, ] = useFlowData();
 
     let selectedDivHtml = [];
     let controlRectHtml = [];
 
     const rectResult = selectedItemRect({
         selectedElements : props.selectedElements,
-        nodeData : props.nodeData,
+        nodeData : flowData,
     });
 
     if(rectResult.selectedRect) {
