@@ -8,8 +8,9 @@ const ContextFlowData = createContext();
  * @param {*} action 
  */
 function flowDataReducer(state, action) {
+    console.log("🚀 ~ action:", action);
     if(JSON.stringify(state) === JSON.stringify(action.value)) return(state);
-    else return(action.value);
+        else return(action.value);
 }
 
 
