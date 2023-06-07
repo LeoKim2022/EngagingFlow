@@ -54,7 +54,7 @@ const nodeData = [
                 id: 'c1',
                 type: DEFINITION.NodeItemType.image,
                 src: 'https://cdn.engaging.co/landing/CHOY7SV/file/3/imvsz9uJvhBSzzoABnBsr6niPSoVBdjc.png',
-                objectFit: 'fill',
+                objectFit: 'contain',
                 top: 10,
                 left: 10,
                 width: 120,

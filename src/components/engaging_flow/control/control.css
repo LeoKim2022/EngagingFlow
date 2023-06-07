@@ -39,17 +39,40 @@
     pointer-events: all;
 }
 
-.flow-control-rect.top,
-.flow-control-rect.bottom {
+.flow-control-rect.top:not(.no-resize),
+.flow-control-rect.bottom:not(.no-resize) {
     cursor: ns-resize;
 }
 
-.flow-control-rect.left,
-.flow-control-rect.right {
+.flow-control-rect.left:not(.no-resize),
+.flow-control-rect.right:not(.no-resize) {
     cursor: ew-resize;
 }
 
 .flow-control-rect>div {
     position: relative;
     background-color: rgba(208, 154, 18, 0.7);
+}
+
+.rs-point {
+    position: absolute;
+    border: 1px solid gray;
+    background-color: white;
+    pointer-events: all!important;
+}
+
+.rs-point.rs-nw {
+    cursor: nw-resize;
+}
+
+.rs-point.rs-ne {
+    cursor: ne-resize;
+}
+
+.rs-point.rs-sw {
+    cursor: sw-resize;
+}
+
+.rs-point.rs-se {
+    cursor: se-resize;
 }

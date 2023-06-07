@@ -7,7 +7,6 @@ export default function NodeItemImage(props) {
             alt="test_img_1" 
             style={{objectFit: props.item.objectFit}}
 
-
             onMouseOver={(event) => {
                 props.onUpdateHighlightItem(event);
             }}

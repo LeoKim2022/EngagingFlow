@@ -153,7 +153,10 @@ export default function ControlBox(props) {
                 /> : null
             }
 
-            <SelectedElements selectedElements={props.selectedElements}/>
+            <SelectedElements 
+                selectedElements={props.selectedElements}
+                updateFlowDragMode={props.updateFlowDragMode}
+            />
 
         </div>
     )

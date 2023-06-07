@@ -410,6 +410,8 @@ export default function EngagingFlow(props) {
             // element가 포함된 node가 선택되어 있으면 node를 이동시킨다.
             // node item은 node좌표에 대한 상대좌표를 사용하기 때문에 모두 이동시킬 경우 의도한 바라고 보기 어렵다.
             const copyFlowData = JSON.parse(JSON.stringify(flowData));
+            if(!copyFlowData) return;
+
             const dragTarget = cursorPositionBegin.dragTarget;
             dragTarget.forEach((dragItem) => {
                 if(dragItem.type === DEFINITION.ElementType.node) {
@@ -418,10 +420,8 @@ export default function EngagingFlow(props) {
                         return(node.id === dragItem.id);
                     });
 
-                    if(copyFlowData) {
-                        findNode.top  = Math.round((dragItem.top  + dragDistance.y) / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
-                        findNode.left = Math.round((dragItem.left + dragDistance.x) / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
-                    }
+                    findNode.top  = Math.round((dragItem.top  + dragDistance.y) / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
+                    findNode.left = Math.round((dragItem.left + dragDistance.x) / DEFINITION.FLOW_GRID_SIZE) * DEFINITION.FLOW_GRID_SIZE;
                 } else {
                     const parentNode = findNodeByItemId(dragItem.id, flowData);
                     if(!parentNode) return;
@@ -487,6 +487,65 @@ export default function EngagingFlow(props) {
         } else if(flowDragMode === DEFINITION.FlowActionMode.rect) {
             setMouseClientX(event.clientX);
             setMouseClientY(event.clientY);
+        } else if(
+               flowDragMode === DEFINITION.FlowActionMode.resizeTop
+            || flowDragMode === DEFINITION.FlowActionMode.resizeLeft
+            || flowDragMode === DEFINITION.FlowActionMode.resizeRight
+            || flowDragMode === DEFINITION.FlowActionMode.resizeBottom
+            || flowDragMode === DEFINITION.FlowActionMode.resizeTopLeft
+            || flowDragMode === DEFINITION.FlowActionMode.resizeTopRight
+            || flowDragMode === DEFINITION.FlowActionMode.resizeBottomLeft
+            || flowDragMode === DEFINITION.FlowActionMode.resizeBottomRight
+        ) {
+            const dragDistance = convertClientDistanceToFlow(editorScaleLev, {
+                x: cursorPositionBegin.clientX,
+                y: cursorPositionBegin.clientY,
+            }, {
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            const copyFlowData = JSON.parse(JSON.stringify(flowData));
+            if(!copyFlowData) return;
+
+            const dragTarget = cursorPositionBegin.dragTarget;
+            dragTarget.forEach((dragItem) => {
+                if(dragItem.type === DEFINITION.ElementType.node) {
+
+                    const findNode = copyFlowData.find((node) => {
+                        return(node.id === dragItem.id);
+                    });
+
+                    if(flowDragMode === DEFINITION.FlowActionMode.resizeTop) {
+                        findNode.top = dragItem.top + dragDistance.y;
+                        findNode.height = dragItem.height - dragDistance.y;
+                    } else if(flowDragMode === DEFINITION.FlowActionMode.resizeBottom) {
+                        findNode.height = dragItem.height + dragDistance.y;
+                    }
+                } else {
+                    const parentNode = findNodeByItemId(dragItem.id, flowData);
+                    if(!parentNode) return;
+                        
+                    const findNode = copyFlowData.find((node) => {
+                        return(node.id === parentNode.id);
+                    });
+
+                    if(isEmptyArray(findNode.items)) return;
+
+                    const findItem = findNode.items.find((item) => {
+                        return(item.id === dragItem.id);
+                    });
+
+                    if(findItem) {
+                        updateItemSize(flowDragMode, findItem, dragItem, dragDistance);
+                    }
+                }
+            });
+            
+            setFlowData({
+                type: '',
+                value: copyFlowData
+            });
         }
 
     };
@@ -645,6 +704,22 @@ export default function EngagingFlow(props) {
      * 
      * @param  
      */
+    function updateFlowDragMode(event, dragMode) {
+        setFlowDragMode(dragMode);
+        const selectedData = getSelectedItemInitData(selectedElements, flowData);
+        setCursorPositionBegin({
+            clientX: event.clientX,
+            clientY: event.clientY,
+            dragTarget: selectedData,
+        });
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
     function updateHighlightNode(event, element) {
 
         if(event.type === 'mouseover' && element !== null) {
@@ -672,6 +747,70 @@ export default function EngagingFlow(props) {
             }
         } else {
             setHighlightItemId(null);
+        }
+    }
+
+
+
+    /**
+     * 
+     * @param  
+     */
+    function updateItemSize(flowDragMode, nodeItem, itemInitData, dragDistance) {
+        switch(flowDragMode) {
+            case DEFINITION.FlowActionMode.resizeTop: {
+                nodeItem.top    = itemInitData.top + dragDistance.y;
+                nodeItem.height = itemInitData.height - dragDistance.y;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeLeft: {
+                nodeItem.left  = itemInitData.left + dragDistance.x;
+                nodeItem.width = itemInitData.width - dragDistance.x;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeRight: {
+                nodeItem.width = itemInitData.width + dragDistance.x;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeBottom: {
+                nodeItem.height = itemInitData.height + dragDistance.y;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeTopLeft: {
+                nodeItem.top    = itemInitData.top + dragDistance.y;
+                nodeItem.height = itemInitData.height - dragDistance.y;
+                nodeItem.left  = itemInitData.left + dragDistance.x;
+                nodeItem.width = itemInitData.width - dragDistance.x;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeTopRight: {
+                nodeItem.top    = itemInitData.top + dragDistance.y;
+                nodeItem.height = itemInitData.height - dragDistance.y;
+                nodeItem.width = itemInitData.width + dragDistance.x;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeBottomLeft: {
+                nodeItem.height = itemInitData.height + dragDistance.y;
+                nodeItem.left  = itemInitData.left + dragDistance.x;
+                nodeItem.width = itemInitData.width - dragDistance.x;
+                break;
+            }
+
+            case DEFINITION.FlowActionMode.resizeBottomRight: {
+                nodeItem.width = itemInitData.width + dragDistance.x;
+                nodeItem.height = itemInitData.height + dragDistance.y;
+                break;
+            }
+
+            default: {
+                break;
+            }
         }
     }
 
@@ -954,6 +1093,7 @@ export default function EngagingFlow(props) {
                     highlightNodeId={highlightNodeId}
                     highlightItemId={highlightItemId}
                     selectedElements={selectedElements}
+                    updateFlowDragMode={updateFlowDragMode}
                     updateSelectedElements={updateSelectedElements}
                 />
             </div>
@@ -991,11 +1131,11 @@ export default function EngagingFlow(props) {
             >
                 <div style={{marginLeft: 20}}><span> Update log </span></div>
                 <ol type="1">
+                    <li>All selected element are resized by dragging</li>
                     <li>All selected element are moved by dragging</li>
                     <li>Add the feature to select items by dragging</li>
                     <li>Add 'item select with shiftKey'</li>
                     <li>Add 'item select' feature</li>
-                    <li>Add item or node highlight</li>
                 </ol>
             </div>
         </div>        

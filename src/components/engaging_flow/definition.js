@@ -15,6 +15,8 @@ const DEFINITION = Object.freeze({
     CONTROL_RECT_BORDER_WIDTH : 2,
     CONTROL_RECT_BORDER_MARGIN: 4,
 
+    CONTROL_RECT_RESIZE_POINTER_SIZE: 8,
+
     NODE_BORDER_WIDTH: 2,
     ITEM_BORDER_WIDTH: 1,
 
@@ -29,9 +31,15 @@ const DEFINITION = Object.freeze({
         selected:  200,
         pointer:   300,
         rect:      400,
-        resizeEw:  500,
-        resizeNs:  600,
-        resizeAll: 700,
+
+        resizeTop        : 500,
+        resizeLeft       : 600,
+        resizeRight      : 700,
+        resizeBottom     : 800,        
+        resizeTopLeft    : 900,
+        resizeTopRight   : 1000,
+        resizeBottomLeft : 1100,
+        resizeBottomRight: 1200,
     }),
     
     NodePointerSize : Object.freeze({
