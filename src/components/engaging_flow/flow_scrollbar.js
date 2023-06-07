@@ -7,7 +7,7 @@ import {useFlowData} from '../context_flow_data'
 
 export default function FlowScrollBar(props) {
 
-    const [flowData, setFlowData] = useFlowData();
+    const [flowData, ] = useFlowData();
 
     const containerPosition = props.containerPosition;
     const boxRect           = props.boxRect;

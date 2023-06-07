@@ -78,11 +78,11 @@ function App() {
                         ref={flowBoxRef} 
                         className='engaging-flow-box' 
                         style={{
-                            width: '1600px', 
+                            width: '1800px', 
                             height: '1200px', 
                             position: 'absolute', 
                             top: '50px', 
-                            left: '50px'
+                            left: '50px',
                         }}
 
                         onContextMenu={(event) => {
@@ -92,7 +92,7 @@ function App() {
                     >
                         <EngagingFlow boxRect={flowRect}/>
                     </div>
-                    </FlowDataProvider>
+                </FlowDataProvider>
             </GlobalConfigProvider>
         </div>
     )

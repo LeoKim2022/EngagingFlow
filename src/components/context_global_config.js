@@ -10,22 +10,22 @@ const ContextGlobalConfig = createContext();
 function globalConfigReducer(state, action) {
 
     // action에 있는 값만 비교한다. 항상 전부를 설정할 필요는 없다.
-    if(typeof action !== 'object' || Object.keys(action).length < 1 ) return(state);
+    if(typeof action.value !== 'object' || Object.keys(action.value).length < 1 ) return(state);
 
     const copyState = JSON.parse(JSON.stringify(state));
-    const actionKeys = Object.keys(action);
+    const actionKeys = Object.keys(action.value);
 
     let hasDifferent = false;
     for(let index = 0, limit = actionKeys.length; index < limit; ++index) {        
         const key = actionKeys[index];
-        if(state[key] !== action[key]) {
+        if(state[key] !== action.value[key]) {
             hasDifferent = true;
             break;
         }
     }
 
     if(hasDifferent) {
-        Object.assign(copyState, action);
+        Object.assign(copyState, action.value);
         return(copyState);
     } else {
         return(state);

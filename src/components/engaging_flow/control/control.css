@@ -38,7 +38,7 @@
     box-sizing: border-box;
     pointer-events: all;
 }
-/*  
+
 .flow-control-rect.top,
 .flow-control-rect.bottom {
     cursor: ns-resize;
@@ -47,7 +47,7 @@
 .flow-control-rect.left,
 .flow-control-rect.right {
     cursor: ew-resize;
-} */
+}
 
 .flow-control-rect>div {
     position: relative;

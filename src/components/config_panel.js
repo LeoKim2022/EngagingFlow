@@ -8,13 +8,19 @@ export default function ConfigPanel(props) {
 
     function onChangeColor(event) {
         setGlobalConfig({
-            lineColor: event.target.value
+            type: '',
+            value: {
+                lineColor: event.target.value
+            }
         });    
     }
 
     function onChangeOpacity(event) {
         setGlobalConfig({
-            opacity: event.target.value
+            type: '',
+            value: {
+                opacity: event.target.value
+            }
         });
     }
     

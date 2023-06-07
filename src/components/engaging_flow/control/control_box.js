@@ -95,7 +95,7 @@ export default function ControlBox(props) {
         if(!controlDragStyle) return;
 
         // Engaging flow 특성상 완전히 포함되는 element만 선택하도록 조정합니다.
-        // 조금이라도 겹치는 영역으로 선택하게 되면, element만 선택할수 있는 방법이 없다.
+        // 조금이라도 겹치는 영역으로 선택하게 되면, element만 선택하기 더 어렵습니다. 
         for(let index = 0, limit = flowData.length; index < limit; ++index) {
 
             const node = flowData[index];

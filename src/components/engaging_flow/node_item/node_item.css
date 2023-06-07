@@ -1,0 +1,35 @@
+.node-item {
+    position: absolute;
+    border: 1px solid gray;
+}
+
+.node-item.text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 0px;
+    
+}
+
+.node-item-contents.text {
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+    max-width: 100%;
+    word-wrap: break-word;
+    line-height: 1em;
+}
+
+.node-item-contents.text:hover {
+    text-decoration: underline;
+}
+
+.node-item-contents.rect {
+    width: 100%;
+    height: 100%;
+}
+
+.node-item-contents.image {
+    width: 100%;
+    height: 100%;
+}

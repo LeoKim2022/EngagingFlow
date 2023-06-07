@@ -3,7 +3,7 @@ import React, { useRef,  } from 'react';
 import {DEFINITION} from './definition'
 import {getParentElement} from './flow_function'
 
-import ItemPanel from './item_panel'
+import NodeItem from './node_item/node_item'
 
 // import {DEFINITION} from './definition'
 import {isEmptyArray} from '../function/common'
@@ -49,7 +49,7 @@ export default function Node(props) {
             }
 
             return(
-                <ItemPanel 
+                <NodeItem 
                     key={index} 
                     item={item}
                     onUpdateHighlightItem={props.onUpdateHighlightItem}

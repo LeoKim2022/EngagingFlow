@@ -58,11 +58,6 @@
     overflow: hidden;    
 }
 
-.node-item {
-    position: absolute;
-    border: 1px solid gray;
-}
-
 .engaging-flow>.flow-container {
     position: absolute;
     overflow: visible;
