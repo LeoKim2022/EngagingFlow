@@ -907,12 +907,16 @@ export default function EngagingFlow(props) {
     }, [updateGridPosition, handleWheel]);
 
     useEffect(() => {
-        return(() => {
-            setFlowData({
-                type: '',
-                value: nodeData
-            });
+        setFlowData({
+            type: '',
+            value: nodeData
         });
+        // return(() => {
+        //     setFlowData({
+        //         type: '',
+        //         value: nodeData
+        //     });
+        // });
     }, [setFlowData]);
 
 
